@@ -33,9 +33,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=lora:400,500,600,700|plus-jakarta-sans:400,500,600,700|roboto-mono:400,500,700" rel="stylesheet" />
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" href="/logo.png" type="image/png" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="/logo.png">
 
         @fonts
 

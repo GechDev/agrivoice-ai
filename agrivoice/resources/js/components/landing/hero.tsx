@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Mic } from 'lucide-react';
 
+import AppLogoIcon from '@/components/app-logo-icon';
 import { AppearanceToggle } from '@/components/appearance-toggle';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -43,8 +44,9 @@ export default function Hero() {
             <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
                 <Link
                     href={home()}
-                    className="text-lg font-semibold tracking-tight text-primary"
+                    className="inline-flex items-center gap-2.5 text-lg font-semibold tracking-tight text-primary"
                 >
+                    <AppLogoIcon className="size-9 rounded-full" />
                     {t('AgriVoice')}
                 </Link>
                 <nav className="flex items-center gap-1 sm:gap-2">

@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import AppLogoIcon from '@/components/app-logo-icon';
 import { AppearanceToggle } from '@/components/appearance-toggle';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -41,8 +42,9 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
                     <div className="flex items-center gap-3">
                         <Link
                             href="/"
-                            className="text-lg font-bold tracking-[-0.01em] text-primary"
+                            className="inline-flex items-center gap-2 text-lg font-bold tracking-[-0.01em] text-primary"
                         >
+                            <AppLogoIcon className="size-8 rounded-full" />
                             {t('AgriVoice')}
                         </Link>
                         <span aria-hidden className="h-4 w-px bg-border" />
