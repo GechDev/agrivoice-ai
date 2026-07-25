@@ -7,6 +7,7 @@ use App\Http\Controllers\CooperativeMemberController;
 use App\Http\Controllers\CooperativePriceController;
 use App\Http\Controllers\CooperativeReportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IvrController;
 use App\Http\Controllers\PublicReportController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Redirect;
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reports/{report}/flag', [ReportController::class, 'flag'])
         ->middleware('throttle:20,1')
         ->name('reports.flag');
+
+    Route::get('/ivr', [IvrController::class, 'index'])->name('ivr.index');
+    Route::post('/ivr/speak', [IvrController::class, 'speak'])->name('ivr.speak');
 
     Route::middleware('cooperative.admin')->prefix('cooperative')->name('cooperative.')->group(function () {
         Route::get('/dashboard', CooperativeDashboardController::class)->name('dashboard');
