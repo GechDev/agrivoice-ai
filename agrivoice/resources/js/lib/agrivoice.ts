@@ -1,7 +1,10 @@
 import type { Crop, Market, ReporterType } from '@/types';
 
 export const CROPS: readonly Crop[] = ['teff', 'coffee'] as const;
-export const REPORTER_TYPES: readonly ReporterType[] = ['crowd', 'official'] as const;
+export const REPORTER_TYPES: readonly ReporterType[] = [
+    'crowd',
+    'official',
+] as const;
 
 const CROP_LABELS: Record<Crop, string> = {
     teff: 'Teff',
@@ -75,7 +78,10 @@ export function formatObservedOn(isoDate: string): string {
 }
 
 export function formatTimeAgo(isoDate: string): string {
-    const elapsedSeconds = Math.max(0, (Date.now() - new Date(isoDate).getTime()) / 1000);
+    const elapsedSeconds = Math.max(
+        0,
+        (Date.now() - new Date(isoDate).getTime()) / 1000,
+    );
 
     if (elapsedSeconds < 45) {
         return 'just now';
@@ -99,13 +105,19 @@ export function formatTimeAgo(isoDate: string): string {
 /** Today's date in the YYYY-MM-DD form a date input expects. */
 export function todayAsInputValue(): string {
     const now = new Date();
-    const localMidnight = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+    const localMidnight = new Date(
+        now.getTime() - now.getTimezoneOffset() * 60_000,
+    );
 
     return localMidnight.toISOString().slice(0, 10);
 }
 
 function wholeDaysBetween(from: Date, to: Date): number {
-    const fromMidnight = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+    const fromMidnight = Date.UTC(
+        from.getFullYear(),
+        from.getMonth(),
+        from.getDate(),
+    );
     const toMidnight = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
 
     return Math.round((toMidnight - fromMidnight) / 86_400_000);

@@ -55,13 +55,14 @@ type ReportFormProps = {
 export default function ReportForm({ markets }: ReportFormProps) {
     const priceInputRef = useRef<HTMLInputElement>(null);
 
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
-        crop: 'teff' as Crop,
-        market: (markets[0]?.slug ?? 'adama') as Market,
-        price: '',
-        reported_at: todayAsInputValue(),
-        reporter_type: 'crowd' as ReporterType,
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            crop: 'teff' as Crop,
+            market: (markets[0]?.slug ?? 'adama') as Market,
+            price: '',
+            reported_at: todayAsInputValue(),
+            reporter_type: 'crowd' as ReporterType,
+        });
 
     const submit = (): void => {
         post('/reports', {
@@ -119,7 +120,9 @@ export default function ReportForm({ markets }: ReportFormProps) {
                     <Label htmlFor="market">Market</Label>
                     <Select
                         value={data.market}
-                        onValueChange={(market) => setData('market', market as Market)}
+                        onValueChange={(market) =>
+                            setData('market', market as Market)
+                        }
                     >
                         <SelectTrigger
                             id="market"
@@ -129,7 +132,10 @@ export default function ReportForm({ markets }: ReportFormProps) {
                         </SelectTrigger>
                         <SelectContent align="start">
                             {markets.map((market) => (
-                                <SelectItem key={market.slug} value={market.slug}>
+                                <SelectItem
+                                    key={market.slug}
+                                    value={market.slug}
+                                >
                                     <span className="font-medium">
                                         {market.name}
                                     </span>
@@ -175,7 +181,9 @@ export default function ReportForm({ markets }: ReportFormProps) {
                         autoComplete="off"
                         placeholder="0"
                         value={data.price}
-                        onChange={(event) => setData('price', event.target.value)}
+                        onChange={(event) =>
+                            setData('price', event.target.value)
+                        }
                         aria-invalid={Boolean(errors.price)}
                         autoFocus
                         className="h-16 rounded-2xl pr-32 pl-16 text-2xl font-semibold tabular-nums md:text-2xl"

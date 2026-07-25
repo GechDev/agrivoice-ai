@@ -2,10 +2,20 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $pin
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
+ * @property-read Collection<int, Report> $reports
+ */
 class Agent extends Model
 {
     /** @use HasFactory<\Database\Factories\AgentFactory> */

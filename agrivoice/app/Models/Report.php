@@ -4,11 +4,27 @@ namespace App\Models;
 
 use App\Enums\Crop;
 use App\Enums\ReporterType;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property Crop $crop
+ * @property int $market_id
+ * @property string $price Decimal cast, so ETB comes back as a string.
+ * @property ReporterType $reporter_type
+ * @property string|null $source
+ * @property int $agent_id
+ * @property CarbonInterface $reported_at
+ * @property bool $is_flagged
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
+ * @property-read Market $market
+ * @property-read Agent $agent
+ */
 class Report extends Model
 {
     /** @use HasFactory<\Database\Factories\ReportFactory> */

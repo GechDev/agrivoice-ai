@@ -100,7 +100,9 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                                                 key={name}
                                                 type="button"
                                                 aria-pressed={isSelected}
-                                                onClick={() => selectAgent(name)}
+                                                onClick={() =>
+                                                    selectAgent(name)
+                                                }
                                                 className={cn(
                                                     'flex items-center gap-2.5 rounded-2xl border p-2.5 text-left transition-colors',
                                                     'focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
@@ -156,13 +158,16 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                                 containerClassName="justify-start"
                             >
                                 <InputOTPGroup className="gap-2.5">
-                                    {Array.from({ length: PIN_LENGTH }, (_, index) => (
-                                        <InputOTPSlot
-                                            key={index}
-                                            index={index}
-                                            className="size-13 rounded-2xl border text-lg font-semibold first:rounded-l-2xl last:rounded-r-2xl"
-                                        />
-                                    ))}
+                                    {Array.from(
+                                        { length: PIN_LENGTH },
+                                        (_, index) => (
+                                            <InputOTPSlot
+                                                key={index}
+                                                index={index}
+                                                className="size-13 rounded-2xl border text-lg font-semibold first:rounded-l-2xl last:rounded-r-2xl"
+                                            />
+                                        ),
+                                    )}
                                 </InputOTPGroup>
                             </InputOTP>
 
@@ -173,7 +178,9 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                             type="submit"
                             size="lg"
                             className="w-full"
-                            disabled={processing || data.pin.length < PIN_LENGTH}
+                            disabled={
+                                processing || data.pin.length < PIN_LENGTH
+                            }
                         >
                             {processing ? <Spinner /> : null}
                             Start entering prices
@@ -240,9 +247,15 @@ function BrandPanel() {
             <div className="relative mt-14 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-primary-foreground/20 pt-6 text-sm">
                 <span className="opacity-70">Tracking</span>
                 <span className="font-medium">Teff · Coffee</span>
-                <span aria-hidden className="h-4 w-px bg-primary-foreground/25" />
+                <span
+                    aria-hidden
+                    className="h-4 w-px bg-primary-foreground/25"
+                />
                 <span className="font-medium">Adama · Addis Ababa · Jimma</span>
-                <span aria-hidden className="h-4 w-px bg-primary-foreground/25" />
+                <span
+                    aria-hidden
+                    className="h-4 w-px bg-primary-foreground/25"
+                />
                 <span className="font-medium">ETB per quintal</span>
             </div>
         </div>

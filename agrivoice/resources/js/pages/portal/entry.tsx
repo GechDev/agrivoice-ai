@@ -1,10 +1,15 @@
 import { Head } from '@inertiajs/react';
 import { Inbox } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 import ReportForm from '@/components/portal/report-form';
 import ReportRow from '@/components/reports/report-row';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import PortalLayout from '@/layouts/portal-layout';
 import { formatTimeAgo } from '@/lib/agrivoice';
 import type { AgentSummary, MarketOption, ReportRowData } from '@/types';
@@ -22,7 +27,6 @@ export default function Entry({
     recentReports,
     entriesToday,
 }: EntryProps) {
-    const freshIds = useFreshReportIds(recentReports);
     const lastEntry = recentReports[0];
 
     return (
@@ -41,7 +45,10 @@ export default function Entry({
                 </div>
 
                 <dl className="flex shrink-0 items-center divide-x divide-border overflow-hidden rounded-2xl border bg-card">
-                    <Stat label="Your entries today" value={String(entriesToday)} />
+                    <Stat
+                        label="Your entries today"
+                        value={String(entriesToday)}
+                    />
                     <Stat
                         label="Last entry"
                         value={
@@ -72,8 +79,7 @@ export default function Entry({
                             My recent entries
                         </CardTitle>
                         <CardDescription>
-                            The last {recentReports.length || 'few'} reports you
-                            filed.
+                            What you have filed, newest first.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -96,7 +102,6 @@ export default function Entry({
                                     <ReportRow
                                         key={report.id}
                                         report={report}
-                                        isNew={freshIds.includes(report.id)}
                                     />
                                 ))}
                             </ul>
@@ -117,33 +122,4 @@ function Stat({ label, value }: { label: string; value: string }) {
             </dd>
         </div>
     );
-}
-
-/**
- * Ids that appeared since the last render, so an arriving row can announce
- * itself instead of silently sliding into the list.
- */
-function useFreshReportIds(reports: ReportRowData[]): number[] {
-    const seenIds = useRef<Set<number> | null>(null);
-    const [freshIds, setFreshIds] = useState<number[]>([]);
-
-    useEffect(() => {
-        const currentIds = reports.map((report) => report.id);
-
-        // The first render is history, not news.
-        if (seenIds.current === null) {
-            seenIds.current = new Set(currentIds);
-
-            return;
-        }
-
-        const arrived = currentIds.filter((id) => !seenIds.current?.has(id));
-        currentIds.forEach((id) => seenIds.current?.add(id));
-
-        if (arrived.length > 0) {
-            setFreshIds(arrived);
-        }
-    }, [reports]);
-
-    return freshIds;
 }

@@ -13,33 +13,41 @@ import {
 import { cn } from '@/lib/utils';
 import type { ReportRowData } from '@/types';
 
-/** How long a newly arrived row stays highlighted. */
-const HIGHLIGHT_DURATION_MS = 1800;
+/** How long a just-created row announces itself for. */
+const HIGHLIGHT_WINDOW_MS = 2500;
+
+/**
+ * Freshness comes from the row's own timestamp rather than from comparing
+ * renders, so a report highlights whether the current agent just saved it or it
+ * arrived from someone else on a polling feed.
+ */
+function wasJustCreated(createdAt: string): boolean {
+    return Date.now() - new Date(createdAt).getTime() < HIGHLIGHT_WINDOW_MS;
+}
 
 type ReportRowProps = {
     report: ReportRowData;
-    /** Highlights the row briefly, so arriving data is visible from the back of a room. */
-    isNew?: boolean;
     /** Slot for a moderation control, such as the flag button on the live feed. */
     action?: ReactNode;
 };
 
-export default function ReportRow({ report, isNew = false, action }: ReportRowProps) {
-    const [isHighlighted, setIsHighlighted] = useState(isNew);
+export default function ReportRow({ report, action }: ReportRowProps) {
+    const [isHighlighted, setIsHighlighted] = useState(() =>
+        wasJustCreated(report.createdAt),
+    );
 
     useEffect(() => {
-        if (!isNew) {
+        if (!isHighlighted) {
             return;
         }
 
-        setIsHighlighted(true);
         const timer = window.setTimeout(
             () => setIsHighlighted(false),
-            HIGHLIGHT_DURATION_MS,
+            HIGHLIGHT_WINDOW_MS,
         );
 
         return () => window.clearTimeout(timer);
-    }, [isNew]);
+    }, [isHighlighted]);
 
     const CropIcon = report.crop === 'coffee' ? Coffee : Wheat;
 
