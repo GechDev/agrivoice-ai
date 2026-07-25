@@ -14,7 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import type { Crop, ReportRowData } from '@/types';
 
-/** How long a just-created row announces itself for. */
 const HIGHLIGHT_WINDOW_MS = 2500;
 
 const CROP_ICONS = {
@@ -27,18 +26,12 @@ const CROP_ICONS = {
     sorghum: Leaf,
 } as const;
 
-/**
- * Freshness comes from the row's own timestamp rather than from comparing
- * renders, so a report highlights whether the current agent just saved it or it
- * arrived from someone else on a polling feed.
- */
 function wasJustCreated(createdAt: string): boolean {
     return Date.now() - new Date(createdAt).getTime() < HIGHLIGHT_WINDOW_MS;
 }
 
 type ReportRowProps = {
     report: ReportRowData;
-    /** Slot for a moderation control, such as the flag button on the live feed. */
     action?: ReactNode;
 };
 
@@ -83,7 +76,7 @@ export default function ReportRow({ report, action }: ReportRowProps) {
                         <p className="truncate text-sm font-medium">
                             {t(cropLabel(report.crop))}
                             <span className="text-muted-foreground"> · </span>
-                            {marketLabel(report.market)}
+                            {t(marketLabel(report.market))}
                         </p>
 
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -95,11 +88,13 @@ export default function ReportRow({ report, action }: ReportRowProps) {
                                 }
                                 className="rounded-full"
                             >
-                                {reporterTypeLabel(report.source)}
+                                {t(reporterTypeLabel(report.source))}
                             </Badge>
                             <span className="truncate">{report.agentName}</span>
                             <span aria-hidden>·</span>
-                            <span>{formatObservedOn(report.reportedAt)}</span>
+                            <span>
+                                {formatObservedOn(report.reportedAt, t)}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -115,7 +110,7 @@ export default function ReportRow({ report, action }: ReportRowProps) {
                             {formatPrice(report.price)}
                         </p>
                         <p className="text-[0.6875rem] text-muted-foreground">
-                            ETB/qt · {formatTimeAgo(report.createdAt)}
+                            {t('ETB/qt')} · {formatTimeAgo(report.createdAt, t)}
                         </p>
                     </div>
 
@@ -126,7 +121,9 @@ export default function ReportRow({ report, action }: ReportRowProps) {
             {report.isFlagged && (
                 <p className="mt-2.5 flex items-center gap-1.5 border-t border-dashed pt-2.5 text-xs font-medium text-destructive">
                     <Flag className="size-3" />
-                    Flagged as an outlier — excluded from the market picture
+                    {t(
+                        'Flagged as an outlier — excluded from the market picture',
+                    )}
                 </p>
             )}
         </li>

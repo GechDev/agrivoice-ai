@@ -96,7 +96,7 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
 
                 {/* Price tile grid — responsive: 1 col mobile, 2 col sm, 3 col xl */}
                 <section
-                    aria-label="Price snapshots"
+                    aria-label={t('Price snapshots')}
                     className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
                 >
                     {ordered.map((snapshot) => (

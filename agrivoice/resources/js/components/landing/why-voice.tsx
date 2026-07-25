@@ -13,24 +13,24 @@ const features = [
         icon: Mic2,
         title: 'Voice-First',
         description:
-            'Built for farmers, not smartphone experts — no reading or typing required.',
+            'Built for farmers, not smartphone experts — no reading or typing required',
     },
     {
         icon: HandCoins,
         title: 'Hyper-Relevant',
-        description: 'Real prices for real crops in real nearby markets.',
+        description: 'Real prices for real crops in real nearby markets',
     },
     {
         icon: Sparkles,
         title: 'Community-Powered',
         description:
-            'Every farmer who reports a price makes the system smarter for everyone.',
+            'Every farmer who reports a price makes the system smarter for everyone',
     },
     {
         icon: ShieldCheck,
         title: 'Honest by Design',
         description:
-            'AgriVoice never invents numbers — every answer is grounded in real reported data.',
+            'AgriVoice never invents numbers — every answer is grounded in real reported data',
     },
     {
         icon: Globe2,

@@ -3,8 +3,10 @@ import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { AppearanceToggle } from '@/components/appearance-toggle';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
+import { useTranslations } from '@/hooks/use-translations';
 import type { AgentSummary } from '@/types';
 
 /**
@@ -30,6 +32,7 @@ type PortalLayoutProps = {
 
 export default function PortalLayout({ agent, children }: PortalLayoutProps) {
     const getInitials = useInitials();
+    const t = useTranslations();
 
     return (
         <div className="min-h-dvh bg-muted/30">
@@ -40,16 +43,17 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
                             href="/"
                             className="text-lg font-bold tracking-[-0.01em] text-primary"
                         >
-                            AgriVoice
+                            {t('AgriVoice')}
                         </Link>
                         <span aria-hidden className="h-4 w-px bg-border" />
                         <span className="text-sm font-medium text-muted-foreground">
-                            Field data entry
+                            {t('Field data entry')}
                         </span>
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
                         <AppearanceToggle />
+                        <LanguageSwitcher />
                         <div className="flex items-center gap-2.5 rounded-full border border-border/70 bg-card py-1 pr-3 pl-1">
                             <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                                 {getInitials(agent.name)}
@@ -62,8 +66,8 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
                         <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="Sign out"
-                            title="Sign out"
+                            aria-label={t('Sign out')}
+                            title={t('Sign out')}
                             onClick={() => router.post('/portal/logout')}
                         >
                             <LogOut />

@@ -33,7 +33,7 @@ export default function Vision() {
                     </h2>
                     <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
                         {t(
-                            'To become Ethiopia\'s real-time agricultural market intelligence platform — closing the information gap between farmers and traders.',
+                            "To become Ethiopia's real-time agricultural market intelligence platform — closing the information gap between farmers and traders.",
                         )}
                     </p>
                 </div>

@@ -88,21 +88,22 @@ export default function Reports({ reports }: ReportsPageProps) {
             <div className="flex flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
                 <header className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        Live data list
+                        {t('Live data list')}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Newest agent entries · flag outliers to correct the
-                        dashboard · updates every 2.5s
+                        {t(
+                            'Newest agent entries · flag outliers to correct the dashboard · updates every 2.5s',
+                        )}
                     </p>
                 </header>
 
                 {/* Filter bar — crop, market, flagged toggle, and result count */}
                 <section
-                    aria-label="Filters"
+                    aria-label={t('Filters')}
                     className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4 shadow-md"
                 >
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="filter-crop">Crop</Label>
+                        <Label htmlFor="filter-crop">{t('Crop')}</Label>
                         <Select
                             value={crop}
                             onValueChange={(value) =>
@@ -113,7 +114,7 @@ export default function Reports({ reports }: ReportsPageProps) {
                                 id="filter-crop"
                                 className="w-[140px]"
                             >
-                                <SelectValue placeholder="Crop" />
+                                <SelectValue placeholder={t('Crop')} />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">
@@ -132,7 +133,7 @@ export default function Reports({ reports }: ReportsPageProps) {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="filter-market">Market</Label>
+                        <Label htmlFor="filter-market">{t('Market')}</Label>
                         <Select
                             value={market}
                             onValueChange={(value) =>
@@ -143,15 +144,21 @@ export default function Reports({ reports }: ReportsPageProps) {
                                 id="filter-market"
                                 className="w-[160px]"
                             >
-                                <SelectValue placeholder="Market" />
+                                <SelectValue placeholder={t('Market')} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All markets</SelectItem>
-                                <SelectItem value="adama">Adama</SelectItem>
-                                <SelectItem value="addis_ababa">
-                                    Addis Ababa
+                                <SelectItem value="all">
+                                    {t('All markets')}
                                 </SelectItem>
-                                <SelectItem value="jimma">Jimma</SelectItem>
+                                <SelectItem value="adama">
+                                    {t('Adama')}
+                                </SelectItem>
+                                <SelectItem value="addis_ababa">
+                                    {t('Addis Ababa')}
+                                </SelectItem>
+                                <SelectItem value="jimma">
+                                    {t('Jimma')}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -161,15 +168,17 @@ export default function Reports({ reports }: ReportsPageProps) {
                         variant={flaggedOnly ? 'default' : 'outline'}
                         onClick={() => setFlaggedOnly((v) => !v)}
                     >
-                        {flaggedOnly ? 'Flagged only' : 'Show flagged only'}
+                        {flaggedOnly
+                            ? t('Flagged only')
+                            : t('Show flagged only')}
                     </Button>
 
                     <p className="ml-auto text-sm text-muted-foreground">
-                        Showing{' '}
+                        {t('Showing')}{' '}
                         <span className="font-semibold text-foreground">
                             {filtered.length}
                         </span>{' '}
-                        of {reports.length}
+                        {t('of')} {reports.length}
                     </p>
                 </section>
 

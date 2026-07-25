@@ -15,27 +15,6 @@ function formatPrice(price: number): string {
     }).format(price);
 }
 
-function formatWhen(iso: string): string {
-    const date = new Date(iso);
-    const mins = Math.floor((Date.now() - date.getTime()) / 60_000);
-
-    if (mins < 1) {
-        return 'Just now';
-    }
-
-    if (mins < 60) {
-        return `${mins}m ago`;
-    }
-
-    const hours = Math.floor(mins / 60);
-
-    if (hours < 24) {
-        return `${hours}h ago`;
-    }
-
-    return date.toLocaleString();
-}
-
 type ReportRowProps = {
     report: ReportRowData;
 };
@@ -52,7 +31,8 @@ export function ReportRow({ report }: ReportRowProps) {
         }
 
         seen.current = true;
-        const ageMs = Date.now() - new Date(report.createdAt ?? report.reportedAt).getTime();
+        const ageMs =
+            Date.now() - new Date(report.createdAt ?? report.reportedAt).getTime();
 
         if (ageMs < 8_000) {
             setFlash(true);
@@ -61,6 +41,27 @@ export function ReportRow({ report }: ReportRowProps) {
             return () => window.clearTimeout(id);
         }
     }, [report.createdAt, report.reportedAt]);
+
+    function formatWhen(iso: string): string {
+        const date = new Date(iso);
+        const mins = Math.floor((Date.now() - date.getTime()) / 60_000);
+
+        if (mins < 1) {
+            return t('Just now');
+        }
+
+        if (mins < 60) {
+            return t(':count m ago', { count: String(mins) });
+        }
+
+        const hours = Math.floor(mins / 60);
+
+        if (hours < 24) {
+            return t(':count h ago', { count: String(hours) });
+        }
+
+        return date.toLocaleString();
+    }
 
     function onFlag() {
         if (report.isFlagged || flagging) {
@@ -93,7 +94,7 @@ export function ReportRow({ report }: ReportRowProps) {
                     </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                    {marketLabel(report.market)}
+                    {t(marketLabel(report.market))}
                 </div>
                 <div
                     className={cn(
@@ -103,7 +104,7 @@ export function ReportRow({ report }: ReportRowProps) {
                 >
                     {formatPrice(report.price)}{' '}
                     <span className="text-xs font-medium text-muted-foreground">
-                        ETB/q
+                        {t('ETB/q')}
                     </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -117,10 +118,16 @@ export function ReportRow({ report }: ReportRowProps) {
                                 : 'secondary'
                         }
                     >
-                        {report.source}
+                        {t(
+                            report.source === 'official'
+                                ? 'Official'
+                                : report.source === 'crowd'
+                                  ? 'Crowd'
+                                  : report.source,
+                        )}
                     </Badge>
                     <span className="text-muted-foreground">
-                        by{' '}
+                        {t('by')}{' '}
                         <span className="font-medium text-foreground">
                             {report.agentName}
                         </span>
@@ -128,7 +135,7 @@ export function ReportRow({ report }: ReportRowProps) {
                 </div>
                 <div className="hidden sm:flex sm:justify-end">
                     {report.isFlagged ? (
-                        <Badge variant="destructive">Flagged</Badge>
+                        <Badge variant="destructive">{t('Flagged')}</Badge>
                     ) : null}
                 </div>
             </div>
@@ -143,12 +150,12 @@ export function ReportRow({ report }: ReportRowProps) {
                     className="w-full justify-center"
                     aria-label={
                         report.isFlagged
-                            ? 'Already flagged'
-                            : `Flag outlier report ${report.id}`
+                            ? t('Already flagged')
+                            : t('Flag outlier')
                     }
                 >
                     <Flag className="size-3.5" />
-                    {report.isFlagged ? 'Flagged' : 'Flag'}
+                    {report.isFlagged ? t('Flagged') : t('Flag')}
                 </Button>
             </div>
         </li>

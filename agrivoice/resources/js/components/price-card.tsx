@@ -41,9 +41,12 @@ function formatPrice(price: number): string {
  * - < 24h → "3h ago"
  * - ≥ 24h → date string
  */
-function formatUpdated(iso: string | null): string {
+function formatUpdated(
+    iso: string | null,
+    t: (key: string, replacements?: Record<string, string>) => string,
+): string {
     if (!iso) {
-        return 'No reports yet';
+        return t('No reports yet');
     }
 
     const date = new Date(iso);
@@ -51,17 +54,17 @@ function formatUpdated(iso: string | null): string {
     const mins = Math.floor(diffMs / 60_000);
 
     if (mins < 1) {
-        return 'Just now';
+        return t('Just now');
     }
 
     if (mins < 60) {
-        return `${mins}m ago`;
+        return t(':count m ago', { count: String(mins) });
     }
 
     const hours = Math.floor(mins / 60);
 
     if (hours < 24) {
-        return `${hours}h ago`;
+        return t(':count h ago', { count: String(hours) });
     }
 
     return date.toLocaleDateString();
@@ -122,7 +125,7 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
             <header className="flex items-start justify-between gap-2">
                 <div>
                     <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                        {marketLabel(snapshot.market)}
+                        {t(marketLabel(snapshot.market))}
                     </p>
                     <h2 className="text-lg font-semibold text-card-foreground">
                         {t(cropLabel(snapshot.crop))}
@@ -133,7 +136,7 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
                         'inline-flex items-center gap-1 text-sm font-semibold',
                         trend.className,
                     )}
-                    title={trend.label}
+                    title={t(trend.label)}
                 >
                     <span aria-hidden>{trend.arrow}</span>
                     {snapshot.changePercent !== null && (
@@ -148,13 +151,13 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
             <div>
                 {collecting ? (
                     <p className="text-2xl font-semibold text-muted-foreground">
-                        Collecting data
+                        {t('Collecting data')}
                     </p>
                 ) : (
                     <p className="text-3xl font-bold tracking-tight text-card-foreground tabular-nums">
                         {formatPrice(snapshot.price)}
                         <span className="ml-1.5 text-sm font-medium text-muted-foreground">
-                            ETB/quintal
+                            {t('ETB/quintal')}
                         </span>
                     </p>
                 )}
@@ -162,7 +165,7 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
 
             <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-border pt-3 text-xs">
                 <div>
-                    <dt className="text-muted-foreground">Confidence</dt>
+                    <dt className="text-muted-foreground">{t('Confidence')}</dt>
                     <dd
                         className={cn(
                             'mt-0.5 font-semibold tabular-nums',
@@ -175,22 +178,22 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
                     </dd>
                 </div>
                 <div>
-                    <dt className="text-muted-foreground">Reports</dt>
+                    <dt className="text-muted-foreground">{t('Reports')}</dt>
                     <dd className="mt-0.5 font-semibold text-card-foreground tabular-nums">
                         {snapshot.reportCount}
                     </dd>
                 </div>
                 <div>
-                    <dt className="text-muted-foreground">Updated</dt>
+                    <dt className="text-muted-foreground">{t('Updated')}</dt>
                     <dd className="mt-0.5 font-semibold text-card-foreground">
-                        {formatUpdated(snapshot.lastUpdated)}
+                        {formatUpdated(snapshot.lastUpdated, t)}
                     </dd>
                 </div>
             </dl>
 
             {lowConfidence && !collecting && (
                 <p className="text-xs text-muted-foreground">
-                    Low confidence — collecting more reports
+                    {t('Low confidence — collecting more reports')}
                 </p>
             )}
         </article>

@@ -122,16 +122,24 @@ const dayFormatter = new Intl.DateTimeFormat('en-GB', {
     month: 'short',
 });
 
-export function formatObservedOn(isoDate: string): string {
+type TranslateFn = (
+    key: string,
+    replacements?: Record<string, string>,
+) => string;
+
+export function formatObservedOn(
+    isoDate: string,
+    t: TranslateFn = (key) => key,
+): string {
     const observedOn = new Date(isoDate);
     const daysAgo = wholeDaysBetween(observedOn, new Date());
 
     if (daysAgo === 0) {
-        return 'Today';
+        return t('Today');
     }
 
     if (daysAgo === 1) {
-        return 'Yesterday';
+        return t('Yesterday');
     }
 
     return dayFormatter.format(observedOn);
@@ -147,29 +155,34 @@ export function formatObservedOn(isoDate: string): string {
  *
  * Used in the live report list and dashboard "last updated" indicators.
  */
-export function formatTimeAgo(isoDate: string): string {
+export function formatTimeAgo(
+    isoDate: string,
+    t: TranslateFn = (key) => key,
+): string {
     const elapsedSeconds = Math.max(
         0,
         (Date.now() - new Date(isoDate).getTime()) / 1000,
     );
 
     if (elapsedSeconds < 45) {
-        return 'just now';
+        return t('Just now');
     }
 
     const elapsedMinutes = Math.round(elapsedSeconds / 60);
 
     if (elapsedMinutes < 60) {
-        return `${elapsedMinutes}m ago`;
+        return t(':count m ago', { count: String(elapsedMinutes) });
     }
 
     const elapsedHours = Math.round(elapsedMinutes / 60);
 
     if (elapsedHours < 24) {
-        return `${elapsedHours}h ago`;
+        return t(':count h ago', { count: String(elapsedHours) });
     }
 
-    return `${Math.round(elapsedHours / 24)}d ago`;
+    return t(':count d ago', {
+        count: String(Math.round(elapsedHours / 24)),
+    });
 }
 
 /**

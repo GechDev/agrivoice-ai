@@ -10,43 +10,43 @@ import { useTranslations } from '@/hooks/use-translations';
 const faqItems = [
     {
         q: 'What crops does AgriVoice support right now?',
-        a: "We support teff, coffee, maize, wheat, sesame, pulses, and sorghum — among Ethiopia's most important crops — across Adama, Addis Ababa, and Jimma.",
+        a: "We're launching with Teff and Coffee — two of Ethiopia's most important crops — with plans to expand to Maize, Wheat, and Haricot Beans within the first year.",
     },
     {
         q: 'Which markets are covered?',
-        a: 'Adama, Addis Ababa, and Jimma at launch. We are actively onboarding partners to expand coverage across all major Ethiopian market towns.',
+        a: "Adama, Addis Ababa, and Jimma at launch. We're adding more regions as our reporter network grows.",
     },
     {
         q: 'What languages can I use?',
-        a: 'Amharic is fully supported today. English is available for the interface. Afaan Oromo and additional regional languages are on our near-term roadmap.',
+        a: 'Amharic is fully supported today. Afaan Oromo and English are on our roadmap.',
     },
     {
-        q: 'Do I need a smartphone or app to download?',
-        a: 'For the hackathon MVP, yes — AgriVoice is a voice-enabled web app accessible from any modern smartphone browser. No app store or download required. SMS and USSD channels are coming soon for feature phone users.',
+        q: 'Do I need a smartphone or app to use AgriVoice?',
+        a: 'For the hackathon MVP, yes — a smartphone with voice input is enough, no app download or account required. WhatsApp, Telegram, and SMS support are planned so farmers without smartphones can use AgriVoice too.',
     },
     {
         q: 'Where do the prices come from?',
-        a: 'Prices come from real reports submitted by farmers, verified by community moderators, and supplemented with public market data where available.',
+        a: 'Prices come from real reports submitted by farmers, traders, and market participants. AgriVoice never invents or estimates a price — it only ever repeats and summarizes real reported data.',
     },
     {
         q: 'How accurate is the information?',
-        a: 'Every price comes with a confidence score based on recency, report volume, and verification status so you can make informed decisions.',
+        a: "Every price comes with a confidence score and a count of how many reports it's based on, so you always know how reliable an answer is before you act on it.",
     },
     {
         q: 'How does the price prediction work?',
-        a: 'We use simple, transparent forecasting based on historical patterns and current market trends. Every prediction clearly shows its confidence level and the data it is based on.',
+        a: "We use simple, transparent forecasting (like moving averages and recent trend analysis) to estimate whether prices are likely to rise, fall, or hold steady over the coming days. It's a short-term guide, not a guarantee.",
     },
     {
         q: 'Can I contribute price data myself?',
-        a: 'Yes. Just tell AgriVoice what you sold or observed, and your report helps the entire community. Contributors earn reputation scores that lend weight to their future submissions.',
+        a: 'Yes. Just tell AgriVoice what you sold, for how much, and where — for example, "I sold teff today for 8,300 Birr in Adama." Your report helps make the system more accurate for every farmer.',
     },
     {
         q: 'Is AgriVoice free to use?',
-        a: 'Yes, during the hackathon MVP and pilot phase. We are exploring sustainable models to keep core market information free for smallholder farmers long-term.',
+        a: 'Yes, during the hackathon MVP and pilot phase, AgriVoice is free for farmers to use.',
     },
     {
         q: 'Who is AgriVoice built for?',
-        a: "Smallholder farmers, traders, and anyone involved in Ethiopia's agricultural supply chain who needs timely, trustworthy market information to make better decisions.",
+        a: 'Smallholder farmers, traders, and anyone who needs fast, trustworthy, spoken market information — no reading or typing required.',
     },
 ];
 

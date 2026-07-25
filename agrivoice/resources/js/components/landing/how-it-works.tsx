@@ -13,39 +13,42 @@ const steps = [
     {
         number: '01',
         icon: Smartphone,
-        title: 'Open AgriVoice',
-        description: 'Launch on any smartphone browser — no app store needed.',
+        title: 'Speak Your Question',
+        description: 'Ask about any crop, in any supported market, in your own language.',
     },
     {
         number: '02',
         icon: Mic,
-        title: 'Tap the Mic',
-        description: 'Speak your question naturally in your own language.',
+        title: 'AI Understands Your Intent',
+        description: "AgriVoice identifies the crop, the location, and what you're really asking.",
     },
     {
         number: '03',
         icon: Wheat,
-        title: 'Name Your Crop',
+        title: 'Real-Time Market Lookup',
         description:
-            'Say any crop — teff, coffee, maize, wheat, sesame, pulses, sorghum — and your market.',
+            'We pull the latest reported prices, confidence scores, and nearby market comparisons.',
     },
     {
         number: '04',
         icon: Zap,
-        title: 'Get Instant Prices',
-        description: 'Hear current prices from nearby markets in seconds.',
+        title: 'Smart Trend Prediction',
+        description:
+            'A short-term forecast tells you if prices are likely to rise, fall, or hold steady.',
     },
     {
         number: '05',
         icon: TrendingUp,
-        title: 'See the Trends',
-        description: 'Know whether prices are rising, falling, or holding.',
+        title: 'Natural Voice Response',
+        description:
+            'AgriVoice speaks the answer back — clearly, simply, and honestly.',
     },
     {
         number: '06',
         icon: Megaphone,
-        title: 'Share & Contribute',
-        description: 'Report what you sold — every voice strengthens the market.',
+        title: 'Give Back to the Community',
+        description:
+            'Report your own sale price with a sentence, and help make the data better for every farmer.',
     },
 ];
 

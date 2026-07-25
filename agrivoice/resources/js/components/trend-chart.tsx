@@ -44,15 +44,15 @@ export function TrendChart({ snapshots }: TrendChartProps) {
     return (
         <div className="rounded-xl border border-border bg-card p-5 shadow-md">
             <h2 className="text-sm font-semibold tracking-wide text-card-foreground uppercase">
-                7-day trend
+                {t('7-day trend')}
             </h2>
             <p className="mb-4 text-xs text-muted-foreground">
-                Last week vs previous week
+                {t('Last week vs previous week')}
             </p>
 
             {withChange.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                    Not enough history for trends yet.
+                    {t('Not enough history for trends yet.')}
                 </p>
             ) : (
                 <ul className="space-y-3">
@@ -72,7 +72,7 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                             >
                                 <span className="truncate text-muted-foreground">
                                     {t(cropLabel(snapshot.crop))} ·{' '}
-                                    {marketLabel(snapshot.market)}
+                                    {t(marketLabel(snapshot.market))}
                                 </span>
                                 <div className="relative h-2 overflow-hidden rounded-full bg-muted">
                                     <div
