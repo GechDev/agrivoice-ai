@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\FlagReport;
 use App\Http\Requests\StoreReportRequest;
 use App\Http\Resources\MarketResource;
 use App\Http\Resources\ReportResource;
 use App\Models\Agent;
 use App\Models\Market;
+use App\Models\Report;
 use App\Services\AgentSession;
 use App\Services\ReportEntryService;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,9 +17,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Reports are where the crowd data enters the system. Entry (this file's
- * create/store) belongs to the data-entry portal; the public feed and
- * moderation actions are added alongside them by the live-list slice.
+ * Reports are where the crowd data enters the system. Entry (create/store)
+ * belongs to the data-entry portal; the public feed and moderation actions
+ * (index/flag) belong to the live-list slice.
  */
 class ReportController extends Controller
 {
@@ -25,6 +27,23 @@ class ReportController extends Controller
      * How many of the agent's own entries the portal shows back to them.
      */
     private const RECENT_ENTRY_LIMIT = 8;
+
+    /**
+     * Live data list — newest reports with agent attribution.
+     */
+    public function index(): Response
+    {
+        $reports = Report::query()
+            ->with(['agent', 'market'])
+            ->latest('reported_at')
+            ->latest('id')
+            ->limit(50)
+            ->get();
+
+        return Inertia::render('reports', [
+            'reports' => ReportResource::collection($reports)->resolve(),
+        ]);
+    }
 
     public function create(AgentSession $agentSession): Response
     {
@@ -56,7 +75,17 @@ class ReportController extends Controller
     }
 
     /**
-     * @return Collection<int, \App\Models\Report>
+     * Flag an outlier so SnapshotService excludes it from aggregates.
+     */
+    public function flag(Report $report, FlagReport $flagReport): RedirectResponse
+    {
+        $flagReport->handle($report);
+
+        return back();
+    }
+
+    /**
+     * @return Collection<int, Report>
      */
     private function recentEntriesFor(Agent $agent): Collection
     {

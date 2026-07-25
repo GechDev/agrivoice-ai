@@ -8,10 +8,13 @@ use Illuminate\Database\Seeder;
 
 class MarketSeeder extends Seeder
 {
+    /**
+     * Seed the three MVP markets with lat/long for the live map.
+     */
     public function run(): void
     {
         foreach (MarketSlug::cases() as $slug) {
-            Market::updateOrCreate(
+            Market::query()->updateOrCreate(
                 ['slug' => $slug->value],
                 [
                     'name' => $slug->label(),

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd /home/tsegaye/Projects/agrivoice-ai/agrivoice && exec php artisan boost:mcp"
+      ]
+    }
+  }
+}

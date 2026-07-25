@@ -4,11 +4,12 @@ namespace App\Models;
 
 use App\Enums\Crop;
 use App\Enums\ReporterType;
-use Carbon\CarbonInterface;
+use Database\Factories\ReportFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,16 +19,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ReporterType $reporter_type
  * @property string|null $source
  * @property int $agent_id
- * @property CarbonInterface $reported_at
+ * @property Carbon $reported_at
  * @property bool $is_flagged
- * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Market $market
  * @property-read Agent $agent
  */
 class Report extends Model
 {
-    /** @use HasFactory<\Database\Factories\ReportFactory> */
+    /** @use HasFactory<ReportFactory> */
     use HasFactory;
 
     /**
@@ -43,6 +44,20 @@ class Report extends Model
         'reported_at',
         'is_flagged',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'crop' => Crop::class,
+            'reporter_type' => ReporterType::class,
+            'price' => 'decimal:2',
+            'reported_at' => 'datetime',
+            'is_flagged' => 'boolean',
+        ];
+    }
 
     /**
      * @return BelongsTo<Market, $this>
@@ -64,24 +79,20 @@ class Report extends Model
      * Flagged reports are excluded from every aggregate, so the snapshot and
      * trend engines share this scope rather than each rewriting the filter.
      *
-     * @param  Builder<$this>  $query
+     * @param  Builder<Report>  $query
+     * @return Builder<Report>
      */
-    public function scopeNotFlagged(Builder $query): void
+    public function scopeNotFlagged(Builder $query): Builder
     {
-        $query->where('is_flagged', false);
+        return $query->where('is_flagged', false);
     }
 
     /**
-     * @return array<string, string>
+     * @param  Builder<Report>  $query
+     * @return Builder<Report>
      */
-    protected function casts(): array
+    public function scopeForCropMarket(Builder $query, Crop $crop, int $marketId): Builder
     {
-        return [
-            'crop' => Crop::class,
-            'reporter_type' => ReporterType::class,
-            'price' => 'decimal:2',
-            'reported_at' => 'datetime',
-            'is_flagged' => 'boolean',
-        ];
+        return $query->where('crop', $crop)->where('market_id', $marketId);
     }
 }

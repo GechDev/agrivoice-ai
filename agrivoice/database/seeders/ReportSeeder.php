@@ -67,8 +67,12 @@ class ReportSeeder extends Seeder
     {
         $this->callOnce([AgentSeeder::class, MarketSeeder::class]);
 
-        $agents = Agent::orderBy('id')->get();
-        $marketIds = Market::pluck('id', 'slug');
+        $agents = Agent::query()->orderBy('id')->get();
+        $marketIds = Market::query()->pluck('id', 'slug');
+
+        if ($agents->isEmpty() || $marketIds->isEmpty()) {
+            return;
+        }
 
         $reportIndex = 0;
 
@@ -80,7 +84,7 @@ class ReportSeeder extends Seeder
                     $daysAgo = $this->daysAgoFor($index, $count);
                     $reporterType = $index % 3 === 0 ? ReporterType::Official : ReporterType::Crowd;
 
-                    Report::create([
+                    Report::query()->create([
                         'crop' => $crop,
                         'market_id' => $marketIds[$marketSlug],
                         'price' => $this->priceFor($crop, $basePrice, $index, $daysAgo),
@@ -141,7 +145,7 @@ class ReportSeeder extends Seeder
     private function seedOutliers(Collection $agents, SupportCollection $marketIds): void
     {
         foreach (self::OUTLIERS as $index => $outlier) {
-            Report::create([
+            Report::query()->create([
                 'crop' => $outlier['crop'],
                 'market_id' => $marketIds[$outlier['market']],
                 'price' => $outlier['price'],

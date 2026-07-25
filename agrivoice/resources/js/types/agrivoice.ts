@@ -1,28 +1,38 @@
 export type Crop = 'teff' | 'coffee';
-export type Market = 'adama' | 'addis_ababa' | 'jimma';
+export type MarketSlug = 'adama' | 'addis_ababa' | 'jimma';
+export type Market = MarketSlug;
 export type Trend = 'up' | 'down' | 'stable';
 export type ReporterType = 'official' | 'crowd';
 
 export interface PriceSnapshot {
     crop: Crop;
-    market: Market;
-    price: number; // ETB per quintal (aggregated)
-    confidence: number; // 0-100
+    market: MarketSlug;
+    price: number;
+    confidence: number;
     reportCount: number;
-    lastUpdated: string; // ISO
+    lastUpdated: string | null;
     trend: Trend;
+    changePercent: number | null;
+}
+
+export interface MarketMarker {
+    slug: MarketSlug;
+    name: string;
+    region: string;
+    latitude: number;
+    longitude: number;
 }
 
 export interface ReportRowData {
     id: number;
     crop: Crop;
-    market: Market;
+    market: MarketSlug;
     price: number;
-    reportedAt: string; // ISO
+    reportedAt: string;
     source: ReporterType;
-    agentName: string; // attribution
+    agentName: string;
     isFlagged: boolean;
-    createdAt: string; // ISO
+    createdAt: string | null;
 }
 
 /** The agent whose session is entering data, from ReportController@create. */
@@ -32,7 +42,7 @@ export interface AgentSummary {
 }
 
 export interface MarketOption {
-    slug: Market;
+    slug: MarketSlug;
     name: string;
     region: string;
     latitude: number;

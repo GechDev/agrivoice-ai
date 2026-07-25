@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\MarketSlug;
+use App\Models\Market;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Market>
+ * @extends Factory<Market>
  */
 class MarketFactory extends Factory
 {
@@ -21,6 +22,21 @@ class MarketFactory extends Factory
     public function slug(MarketSlug $slug): static
     {
         return $this->state(fn (): array => $this->attributesForSlug($slug));
+    }
+
+    public function adama(): static
+    {
+        return $this->slug(MarketSlug::Adama);
+    }
+
+    public function addisAbaba(): static
+    {
+        return $this->slug(MarketSlug::AddisAbaba);
+    }
+
+    public function jimma(): static
+    {
+        return $this->slug(MarketSlug::Jimma);
     }
 
     /**

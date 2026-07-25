@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Agent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Agent>
+ * @extends Factory<Agent>
  */
 class AgentFactory extends Factory
 {

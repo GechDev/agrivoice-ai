@@ -18,4 +18,15 @@ enum ReporterType: string
             self::Crowd => 'Crowd',
         };
     }
+
+    /**
+     * Relative weight when averaging prices (official above crowd).
+     */
+    public function weight(): float
+    {
+        return match ($this) {
+            self::Official => 1.5,
+            self::Crowd => 1.0,
+        };
+    }
 }

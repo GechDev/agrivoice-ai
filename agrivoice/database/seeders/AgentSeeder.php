@@ -24,7 +24,7 @@ class AgentSeeder extends Seeder
     public function run(): void
     {
         foreach (self::AGENTS as $agent) {
-            Agent::updateOrCreate(
+            Agent::query()->updateOrCreate(
                 ['name' => $agent['name']],
                 ['pin' => $agent['pin']],
             );

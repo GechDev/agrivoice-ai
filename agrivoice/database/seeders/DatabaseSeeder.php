@@ -15,14 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
-        // ReportSeeder depends on agents and markets and pulls them in itself.
-        $this->call(ReportSeeder::class);
+        $this->call([
+            MarketSeeder::class,
+            AgentSeeder::class,
+            ReportSeeder::class,
+        ]);
     }
 }

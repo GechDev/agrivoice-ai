@@ -3,26 +3,27 @@
 namespace App\Models;
 
 use App\Enums\MarketSlug;
-use Carbon\CarbonInterface;
+use Database\Factories\MarketFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property MarketSlug $slug
  * @property string $name
  * @property string $region
- * @property float $latitude
- * @property float $longitude
- * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
+ * @property string $latitude
+ * @property string $longitude
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Collection<int, Report> $reports
  */
 class Market extends Model
 {
-    /** @use HasFactory<\Database\Factories\MarketFactory> */
+    /** @use HasFactory<MarketFactory> */
     use HasFactory;
 
     /**
@@ -37,22 +38,22 @@ class Market extends Model
     ];
 
     /**
-     * @return HasMany<Report, $this>
-     */
-    public function reports(): HasMany
-    {
-        return $this->hasMany(Report::class);
-    }
-
-    /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'slug' => MarketSlug::class,
-            'latitude' => 'float',
-            'longitude' => 'float',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
+    }
+
+    /**
+     * @return HasMany<Report, $this>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
     }
 }

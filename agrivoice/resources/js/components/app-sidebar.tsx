@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, List } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,6 +14,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/hooks/use-translations';
+import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
@@ -25,6 +26,11 @@ export function AppSidebar() {
             title: t('Dashboard'),
             href: dashboard(),
             icon: LayoutGrid,
+        },
+        {
+            title: t('Live list'),
+            href: reportsIndex(),
+            icon: List,
         },
     ];
 
