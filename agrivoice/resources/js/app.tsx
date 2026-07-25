@@ -2,9 +2,11 @@ import { createInertiaApp } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
+import { handleInitialSharedFlash } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import type { SharedFlash } from '@/types/ui';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -29,7 +31,15 @@ createInertiaApp({
         }
     },
     strictMode: true,
-    withApp(app) {
+    withApp(app, { page, ssr }) {
+        // Toaster sits outside the Inertia tree, so initial flash must be
+        // read from withApp instead of usePage().
+        if (!ssr) {
+            handleInitialSharedFlash(
+                page.props.flash as SharedFlash | undefined,
+            );
+        }
+
         return (
             <TooltipProvider delayDuration={0}>
                 {app}

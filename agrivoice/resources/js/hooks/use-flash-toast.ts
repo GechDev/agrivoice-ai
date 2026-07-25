@@ -1,4 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import type { FlashToast, SharedFlash } from '@/types/ui';
@@ -32,25 +32,27 @@ function toastSharedFlash(flash: SharedFlash | undefined): void {
 }
 
 /**
+ * Toast shared flash props from the first Inertia page load.
+ *
+ * Called from createInertiaApp's withApp wrapper so Toaster can stay outside
+ * the Inertia tree without calling usePage().
+ */
+export function handleInitialSharedFlash(flash: SharedFlash | undefined): void {
+    if (initialSharedFlashHandled) {
+        return;
+    }
+
+    initialSharedFlashHandled = true;
+    toastSharedFlash(flash);
+}
+
+/**
  * Subscribes to Inertia flash events and displays them as toast notifications.
  *
- * The server can send flash data via session()->flash('toast', [...]).
- * This hook listens for the Inertia 'flash' event and renders the
- * toast using sonner. Used for server-side notifications like
- * "Password updated" or "Settings saved."
+ * Uses router events only — safe to call from components rendered outside the
+ * Inertia PageContext (e.g. the global Sonner Toaster in withApp).
  */
 export function useFlashToast(): void {
-    const page = usePage();
-
-    useEffect(() => {
-        if (initialSharedFlashHandled) {
-            return;
-        }
-
-        initialSharedFlashHandled = true;
-        toastSharedFlash(page.props.flash);
-    }, [page.props.flash]);
-
     useEffect(() => {
         const removeFlashListener = router.on('flash', (event) => {
             const flash = (event as CustomEvent).detail?.flash as
