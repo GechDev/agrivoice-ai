@@ -1,0 +1,82 @@
+---
+description: PARKED — voice/LLM/STT/TTS rules. NOT in the current showcase scope. If voice returns, these rules are mandatory.
+globs: app/Services/Llm/**,app/Services/Tts/**,app/Services/Stt/**,app/Services/IntentService.php,app/Http/Controllers/VoiceController.php,**/*Llm*,**/*prompt*,**/prompts/**
+alwaysApply: false
+---
+
+# AI / LLM Safety Rules (PARKED — out of showcase scope)
+
+> **STATUS: PARKED.** The current showcase is a live data dashboard + agent
+> data-entry portal — **no voice pipeline** (see `000-project-overview.mdc`).
+> Don't build STT/TTS/LLM/IntentService/VoiceController for the demo. This file is
+> preserved so the safety rules are ready **if and when** voice is added back.
+> Everything below is mandatory the moment any LLM/STT/TTS code exists.
+
+These rules are non-negotiable and apply to ALL code that touches the LLM.
+
+## The core rule
+
+**The LLM NEVER invents, guesses, estimates, or fabricates a price or a forecast
+number.** It receives structured data from our database/prediction service and
+its only job is to explain that data naturally, in the farmer's language.
+
+A farmer may make a real financial decision based on the answer. A hallucinated
+price is a direct, concrete harm. Treat this as a hard boundary, not a style
+preference.
+
+## How to enforce it in code
+
+1. **Always pass the numbers in the prompt as structured data.** Never ask the
+   model "what is the price of teff?" — always "here is the price data, explain
+   it." The model sees only what our DB returned.
+
+2. **System prompt must include these instructions** (keep them, don't soften):
+
+```
+You are an agricultural market assistant for Ethiopian farmers.
+Use ONLY the data provided in this message. NEVER invent, estimate, or guess
+any price, percentage, or forecast. If a value is missing, say the data is not
+available — do not fill it in. Keep responses under 100 words. Explain trends in
+simple, plain language. Do not give hard financial commands like "sell now";
+instead describe the situation ("prices are rising this week"). Respond in the
+requested language (default Amharic).
+```
+
+3. **The forecast number/trend comes from `app/Services/PredictionService.php`,
+   not the LLM.** The LLM only phrases the already-computed trend.
+
+4. **Validate the LLM output before speaking it.** If the response contains a
+   number that was not in the input data, treat it as a failure — log it and fall
+   back to a templated answer built directly from the structured data. Do not
+   send an unverified number to TTS.
+
+5. Prefer a **deterministic template** for the price sentence and use the LLM
+   only for the natural-language framing/comparison when reliability matters
+   (e.g. during the live demo). A hybrid is safer than full free-generation.
+
+## Provider abstraction
+
+Wrap STT, TTS, and LLM behind thin Service classes (`app/Services/Stt/`,
+`Tts/`, `Llm/`) behind an interface, bound in a ServiceProvider, so we can swap
+providers if one is slow or down during the hackathon. Read the provider/model
+from `config/*` (not `env()` in app code — it breaks `config:cache`); don't
+hardcode it in call sites.
+
+- STT candidates: OpenAI Whisper, Groq Whisper, AssemblyAI.
+- TTS candidates: ElevenLabs, OpenAI TTS, Google Cloud TTS. Verify the chosen
+  one actually supports **Amharic** before committing — not all do. This is a
+  known risk; flag it if the selected provider lacks Amharic voice support.
+- LLM: whichever API is easiest/most reliable on the day.
+
+## Intent extraction
+
+`app/Services/IntentService.php` extracts `{ crop, market, intent }` from the
+transcript.
+Constrain outputs to the MVP enums. If the crop/market is outside the supported
+set, return a graceful "I can only help with teff and coffee in Adama, Addis
+Ababa, and Jimma right now" rather than hallucinating a match.
+
+## Language & voice
+
+Default to Amharic for both understanding and response. Keep spoken answers
+short (they're heard, not read) — one or two sentences is ideal for TTS.

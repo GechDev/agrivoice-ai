@@ -1,0 +1,60 @@
+---
+description: OWNER — Gezachew. Data-entry portal — the agent form where farmer prices are entered manually. Feeds the whole demo.
+globs: resources/js/Pages/Portal/**,resources/js/Pages/Entry.tsx,resources/js/Components/ReportForm.tsx,resources/js/Pages/Agent/**
+alwaysApply: false
+---
+
+# Owner: Gezachew — Data-Entry Portal
+
+You own **where data comes in**. Agents (people calling/visiting farmers) use your
+portal to enter a farmer's sale price. Every entry you accept flows straight to
+Nati's live list and Tsegaye's dashboard — you are the source of the "live" in
+"live demo". Speed and correctness of entry matter most.
+
+Read `000-project-overview.mdc` and `010-frontend-conventions.mdc` first.
+Coordinate the `POST /reports` shape with **Nba** and the row shape with **Nati**.
+
+## What you build
+
+- Agent **light login** (LOCKED decision): name + PIN, sets the session's agent.
+  Small screen; no password reset, no signup UI (Nba seeds the agent list).
+- `resources/js/Pages/Portal/Entry.tsx` (or `Pages/Entry.tsx`) — the entry form.
+- `resources/js/Components/ReportForm.tsx` — the reusable form.
+- A small "my recent entries" list under the form so the agent sees their last
+  few submissions confirmed (reuses Nati's row component if handy).
+
+## The form
+
+Fields (constrain to MVP enums — reject anything else with a clear inline error):
+
+- **Crop** — select: `teff | coffee`
+- **Market** — select: `adama | addis_ababa | jimma`
+- **Price** — number, ETB per quintal (sane bounds, e.g. > 0 and < 100000)
+- **Reported at** — date (defaults to today; a farmer may report yesterday's sale)
+- **Source / reporter type** — `official | crowd` (default `crowd`; official for
+  a market bulletin the agent is transcribing) — this makes confidence vary on
+  the dashboard, so keep it.
+- (agent identity comes from the session, NOT a form field)
+
+## Submit flow
+
+- `router.post('/reports', data)` (Inertia `useForm`), or `POST /reports` XHR.
+- On success: **clear the form, keep crop+market selected**, show a quick "saved"
+  toast, prepend to "my recent entries". Agents enter many in a row — optimize for
+  fast repeat entry (keyboard-friendly, autofocus price after submit).
+- Show server validation (422) inline. Never lose what the agent typed on error.
+
+## Why agents, and the honest framing
+
+During the showcase, agents enter prepared/seed prices *and* can enter new ones
+live. The point is to demonstrate the ingestion loop — be ready to answer "where
+does this data come from?" with: trained agents collecting from farmers/markets,
+same as how iShamba/Farmerline seeded their networks. Attribution (your login)
+is what makes that claim credible on screen.
+
+## Don't
+
+- Don't compute prices/confidence/trends — that's Nba's engine; you only submit
+  raw reports.
+- Don't build full auth. Name + PIN, session, done.
+- Don't allow crops/markets outside the fixed set.

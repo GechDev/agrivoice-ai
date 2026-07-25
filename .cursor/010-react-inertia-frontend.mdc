@@ -1,0 +1,105 @@
+---
+description: React + Inertia + TypeScript frontend conventions — pages, components, polling, and shared types for AgriVoice.
+globs: resources/js/**,resources/js/**/*.tsx,resources/js/**/*.ts,vite.config.*
+alwaysApply: false
+---
+
+# React + Inertia Frontend Conventions
+
+React + TypeScript rendered through **Inertia.js** inside Laravel. Monolith: no
+React Router, no Next.js, no client-side fetching for the initial page load.
+
+Three frontend surfaces, three owners:
+- **Dashboard** (Tsegaye) — `100-owner-tsegaye-dashboard.mdc`
+- **Data-entry portal** (Gezachew) — `110-owner-gezachew-entry-portal.mdc`
+- **Live data list** (Nati) — `120-owner-nati-live-list.mdc`
+
+## Inertia essentials
+
+- A page receives data as **props from its Laravel controller**
+  (`Inertia::render('Dashboard', ['snapshots' => ...])`). Don't fetch initial
+  data in `useEffect`.
+- Navigation: Inertia `<Link href="/dashboard">`, not `<a>` reloads, not
+  react-router.
+- Mutations: `useForm()` / `router.post('/reports', data)`.
+
+## Live update (LOCKED: polling, not websockets)
+
+Both the dashboard and the live list refresh on an interval so new agent entries
+appear within ~2–3s:
+
+```tsx
+import { router } from '@inertiajs/react';
+useEffect(() => {
+  const id = setInterval(() => router.reload({ only: ['snapshots'] }), 2500);
+  return () => clearInterval(id);
+}, []);
+```
+
+Use `only: [...]` to re-fetch just the relevant prop (`snapshots` for the
+dashboard, `reports` for the list) — cheap, no full reload. Inertia v2 `usePoll`
+is fine if present. Animate/flash changed rows and tiles so the update is visible
+on stage — that reaction is the demo.
+
+## Structure
+
+```
+resources/js/
+  Pages/            # Dashboard, Portal/Entry, Reports, Agent login
+  Layouts/          # AppLayout
+  Components/        # PriceCard, MarketMap, TrendChart, ReportForm,
+                     # RecentReportsFeed, ReportRow
+  types.ts          # shared TS types (import everywhere, don't redefine)
+```
+
+## TypeScript — shared types (align with Eloquent models / `040`)
+
+```ts
+export type Crop = 'teff' | 'coffee';
+export type Market = 'adama' | 'addis_ababa' | 'jimma';
+export type Trend = 'up' | 'down' | 'stable';
+export type ReporterType = 'official' | 'crowd';
+
+export interface PriceSnapshot {
+  crop: Crop;
+  market: Market;
+  price: number;          // ETB per quintal (aggregated)
+  confidence: number;     // 0–100
+  reportCount: number;
+  lastUpdated: string;    // ISO
+  trend: Trend;
+}
+
+export interface ReportRowData {
+  id: number;
+  crop: Crop;
+  market: Market;
+  price: number;
+  reportedAt: string;
+  source: ReporterType;
+  agentName: string;      // attribution
+  isFlagged: boolean;
+  createdAt: string;
+}
+```
+
+Type all props and payloads. Define shapes once in `types.ts`.
+
+## Non-negotiable UI rule
+
+**Never render a bare price.** Any price shown carries confidence % + report
+count + last-updated. That provenance stamp is the credibility pitch — it proves
+the number is crowd-backed, not invented.
+
+- Trend arrows: `↑` green, `↓` red, `→` grey (relative to movement).
+- Low confidence looks visibly different (muted / "collecting data").
+
+## Leaflet
+
+`react-leaflet` if the starter uses it, else init in `useEffect` and clean up on
+unmount. Import Leaflet CSS once. Don't reference `window` at module top level.
+
+## Don't over-engineer
+
+No Redux/Zustand unless the starter has it — React state + Inertia props +
+polling cover the whole showcase. Voice/mic components are parked (`030`).

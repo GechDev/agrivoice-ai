@@ -1,0 +1,91 @@
+---
+description: AgriVoice showcase — vision, demo scope, locked decisions, and the 4-person ownership map. Read this before writing any code.
+alwaysApply: true
+---
+
+# AgriVoice — Showcase Build Overview
+
+AgriVoice turns scattered, outdated market gossip into a **real-time, comparable,
+confidence-scored crop-price picture** for Ethiopian farmers. The long-term moat
+is the **crowd-data loop** — a growing base of real reported sale prices — not the
+AI. This build showcases that loop live.
+
+## What we are demoing (the pivot — read this)
+
+The original concept was voice-first (farmer speaks → STT → LLM → TTS). **For this
+showcase, voice is PARKED.** Amharic STT is the single most likely thing to fail
+on stage, and it isn't what proves the idea. Instead we demo the data engine:
+
+> **The money shot:** a human **agent** enters a farmer's price in the data-entry
+> **portal**, and the public **showcase dashboard** updates in front of the judges —
+> new price, new confidence %, new trend, live on the map.
+
+That one loop proves the crowd-data moat. Everything we build serves it.
+
+## Locked decisions (do not re-litigate)
+
+1. **"Live" = polling.** The dashboard and live list re-fetch every ~2–3s. No
+   websockets/Reverb — it must survive conference wifi. See owner files.
+2. **Named agents, light login.** Each data-entry agent has a name + PIN so every
+   entry is attributed ("entered by Nati"). This powers the attribution and
+   flag-outlier / anti-poisoning story. No full user auth beyond this.
+3. **One host laptop.** The showcase laptop runs Laravel + SQLite and serves the
+   dashboard on the projector; agents enter data from their own laptops by
+   hitting the host's LAN IP (`http://<host-ip>:8000`). See `050-infra-devops.mdc`.
+
+## In scope (the spine)
+
+1. **Data-entry portal** — agent picks crop + market, enters price / date / source,
+   submits. Owner: **Gezachew**.
+2. **Live data list** — master table of every entry, newest first, with agent
+   attribution, crop/market filters, and a flag-outlier action. Owner: **Nati**.
+3. **Showcase dashboard** — price cards (price + confidence % + report count +
+   last-updated), market map, trend arrows, auto-refreshing. Owner: **Tsegaye**.
+4. **Market intelligence backend** — aggregation, confidence scoring, nearby-market
+   comparison, moving-average trend, agent auth, seed data. Owner: **Nba**.
+
+## Out of scope (say it out loud — nobody builds these)
+
+- Voice pipeline (STT / TTS / LLM). Parked — see `030-ai-llm-safety.mdc` for when
+  it returns. A single canned voice clip is an *optional* stretch, never on the
+  critical path.
+- Cooperative dashboard, trader/exporter API, NGO reporting, agri-input cross-sell
+  — that's the *business model*, not the demo.
+- Real user auth / accounts, payments, admin panels, settings pages.
+- Any crop or market outside the list below.
+
+## Fixed scope
+
+- **Crops:** Teff, Coffee (only).
+- **Markets:** Adama, Addis Ababa, Jimma (only) — 2 crops × 3 markets = 6 dashboard tiles.
+- **Currency/unit:** ETB per quintal, everywhere.
+
+## Team ownership map
+
+| Owner | Area | Guide |
+|-------|------|-------|
+| **Tsegaye** | Showcase live dashboard (cards, map, trends, polling) | `100-owner-tsegaye-dashboard.mdc` |
+| **Gezachew** | Data-entry portal (agent form, validation, submit) | `110-owner-gezachew-entry-portal.mdc` |
+| **Nati** | Live data list (table, filters, attribution, flag) | `120-owner-nati-live-list.mdc` |
+| **Nba** | Backend (data model, engine, agent auth, seed, API) | `130-owner-nba-backend.mdc` |
+
+Gezachew and Nati share one backend contract (the entry endpoint + the list
+endpoint from Nba) — coordinate on those shapes early.
+
+## The one contract everyone depends on
+
+The whole demo hinges on the shapes Nba exposes. Agree these on day one:
+
+- `POST /reports` — an agent submits a price (portal). Returns the stored row.
+- `GET  /reports` — the live list (Nati), newest first, with agent name.
+- `GET  /dashboard` (Inertia) / `GET /api/snapshot` — the 6 aggregated tiles
+  (Tsegaye): price, confidence, reportCount, lastUpdated, trend, per crop+market.
+- `POST /reports/{id}/flag` — mark an entry as an outlier (Nati).
+
+## Stack (authoritative — ignore any Next.js in old planning docs)
+
+- **Backend:** Laravel (PHP 8.2+). **Frontend:** React + TypeScript via **Inertia.js**
+  (monolith, pages in `resources/js/Pages/`). **Build:** Vite. **Styling:** Tailwind
+  (+ shadcn/ui if the starter has it). **Map:** Leaflet. **DB:** SQLite (single file).
+- There is already a starter Laravel + React app in `agrivoice/`. **Extend it** —
+  match existing folder layout, naming, and routing. Never import from `next/*`.

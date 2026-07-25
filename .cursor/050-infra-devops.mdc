@@ -1,0 +1,63 @@
+---
+description: Infra, env, showcase host-laptop setup, and demo-reliability practices for AgriVoice.
+globs: docker-compose*.yml,Dockerfile*,.env*,config/**,**/Jobs/**,**/*.sh
+alwaysApply: false
+---
+
+# Infra & DevOps Conventions
+
+Showcase infra: get it running reliably and reproducibly, don't gold-plate.
+
+## Local environment
+
+- **SQLite is the default DB** — zero-config, single file at
+  `database/database.sqlite`. Plain `php artisan serve` + SQLite; no DB server.
+  `touch database/database.sqlite` then migrate. Docker/Sail is optional — don't
+  force it on the team.
+- One command to a fresh demo DB: `php artisan migrate:fresh --seed`. Provide a
+  `composer`/Makefile shortcut alongside `npm run dev` (Vite) and serve.
+- Commit a **`.env.example`** with every key the app needs. Never commit real
+  `.env` / secrets.
+
+## Showcase host-laptop setup (LOCKED)
+
+The showcase runs off **one host laptop** that serves the dashboard on the
+projector; the other agents enter data from their own laptops over the LAN.
+
+- Host runs Laravel bound to all interfaces:
+  `php artisan serve --host=0.0.0.0 --port=8000`.
+- Agents open `http://<host-ip>:8000` (find it with `ip addr` / `hostname -I`).
+- SQLite file lives on the host only — all writes go through the host's Laravel,
+  so there's no shared-file-locking problem; agents just use the web app.
+- Ensure Vite assets are built (`npm run build`) or the dev server is reachable;
+  confirm session cookies + CSRF work for the LAN origin, not just `localhost`.
+- Everyone on the **same wifi/hotspot**. Test the LAN round-trip before the demo,
+  not during it. Have the host laptop's IP written down.
+
+## "Live" = polling (LOCKED)
+
+No websockets/Reverb. The dashboard and live list poll every ~2–3s via Inertia
+`router.reload({ only: [...] })`. Nothing to run beyond the web server — that's
+the point: it survives flaky venue wifi.
+
+## Config, not env(), in app code
+
+Read config through `config/*.php` and reference `config('...')` in code. Calling
+`env()` outside config breaks `config:cache`.
+
+## Demo-reliability checklist
+
+- **Pre-seed all data** (agents, markets, a realistic spread of reports with a few
+  outliers) so nothing external is on the critical path during judging.
+- `migrate:fresh --seed` must produce a demo-ready DB every time.
+- Have a **known-good reset**: if entries get messy mid-practice, re-seed in one
+  command.
+- The dashboard must render fine with thin data — "collecting data / low
+  confidence", never a crash or blank tile.
+- Voice is parked (`030`) — no mic/provider dependencies on the critical path.
+
+## Deployment (only if you actually deploy instead of host-laptop)
+
+A single small VM or Forge/Fly/Render is plenty: `config:cache`, `route:cache`,
+`migrate --force`, build Vite assets. A stable host-laptop demo beats a shaky
+deploy — only do this if the team explicitly wants a shared URL.

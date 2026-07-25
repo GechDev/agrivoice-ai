@@ -1,0 +1,78 @@
+---
+description: Database schema, Eloquent models, and migrations for AgriVoice (agents, markets, reports, predictions).
+globs: database/**,app/Models/**,**/migrations/**,**/*Model*.php
+alwaysApply: false
+---
+
+# Database & Eloquent Conventions
+
+SQLite via Eloquent + migrations. Zero-config: the DB is a single file
+(`database/database.sqlite`), so contributors just run migrations — no DB server.
+For the showcase it lives on the **host laptop** and agents hit it over LAN (see
+`050-infra-devops.mdc`). Keep the schema minimal — four core tables cover the demo.
+
+## Core tables
+
+**agents** (light login — LOCKED decision; powers attribution)
+- `id`, `name`, `pin` (hashed), timestamps.
+- Seed the four team agents so there's no signup UI.
+
+**markets** (reference data — seed the three MVP markets)
+- `id`, `slug` (`adama|addis_ababa|jimma`), `name`, `region`, `latitude`,
+  `longitude`.
+
+**reports** (every price entry the agents submit — the heart of the demo)
+- `id`
+- `crop` (`teff|coffee`)
+- `market_id` (FK → markets)
+- `price` (decimal, ETB per quintal)
+- `reporter_type` (`official|crowd`) — makes confidence vary on the dashboard
+- `source` (nullable — e.g. `wfp`, `ecx`, `user`)
+- `agent_id` (FK → agents) — **attribution**: who entered this; stamped from the
+  session, never from a form field
+- `reported_at` (timestamp of the observation, not just `created_at`)
+- `is_flagged` (bool, default false — outlier/poisoning detection; excluded from
+  every aggregate)
+- timestamps
+
+**predictions** (cached trend output — optional; can compute on the fly)
+- `id`, `crop`, `market_id`, `predicted_price` (nullable), `trend`
+  (`up|down|stable`), `confidence`, `computed_at`.
+
+A current "price snapshot" is a **derived aggregate over `reports`** (recent,
+non-flagged, weighted by recency + reporter_type), not a stored column. Keep the
+raw reports; compute the displayed number.
+
+> **Optional stretch — `bids` table:** a bidding tab where buyers/sellers post
+> what they'd pay/accept (a second crowd data signal). Not on the demo critical
+> path; only add if the spine is done. If added: `crop`, `market_id`,
+> `side` (`buy|sell`), `price`, `is_flagged`, `expires_at` — weight lower than
+> reports and exclude flagged/expired from snapshots.
+
+## Migrations & seeding
+
+- Use migrations for all schema. Use a **seeder** to load the 3 markets, the 4
+  agents, and a realistic spread of reports across all 6 crop+market pairs so the
+  dashboard is populated and confidence varies. Mix `official`/`crowd`, spread
+  `reported_at` over ~2 weeks so trends compute, and include a couple of obvious
+  outliers for the flag demo. **Pre-seed before the demo** — never live-fetch
+  during judging. `migrate:fresh --seed` must yield a demo-ready DB.
+- Index `reports(crop, market_id, reported_at)` — the snapshot query hits it constantly.
+
+## Eloquent conventions
+
+- Models: `Agent`, `Market`, `Report`, `Prediction`. Relationships
+  (`Market hasMany Report`, `Agent hasMany Report`).
+- **Cast enums** — PHP enums or `$casts` for `crop`, `reporter_type`, `trend` so
+  invalid values can't leak in.
+- Put snapshot/confidence aggregation in a query scope or `SnapshotService`, not
+  duplicated across controllers.
+- Guard against poisoning: confidence drops when reports disagree; flagged
+  (`is_flagged`) rows are excluded so a bad entry can't tank a market's average.
+
+## Field-name alignment
+
+Eloquent uses snake_case columns; the frontend types use camelCase
+(`reportCount`, `lastUpdated`, `agentName`). Map in an **API Resource**
+(`app/Http/Resources/`), not ad hoc in the frontend. If you rename a field here,
+update `resources/js/types.ts`.

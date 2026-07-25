@@ -1,0 +1,80 @@
+---
+description: Laravel backend conventions — controllers, routes, services, validation, agent auth, and the snapshot engine for AgriVoice.
+globs: app/**,routes/**,**/*.php,app/Http/**,app/Services/**,app/Models/**,config/**
+alwaysApply: false
+---
+
+# Laravel Backend Conventions
+
+Laravel 11/12, PHP 8.2+. Keep it lean — showcase service, not an enterprise
+codebase. Favor Laravel conventions over bespoke abstractions. Backend owner:
+**Nba** (see `130-owner-nba-backend.mdc`).
+
+## Structure
+
+```
+app/
+  Http/
+    Controllers/
+      DashboardController.php   # 6 aggregated snapshots -> Inertia page (Tsegaye)
+      ReportController.php      # store + list + flag reports (Gezachew, Nati)
+      AgentAuthController.php   # name + PIN light login (Gezachew)
+    Requests/                  # FormRequest validation
+    Resources/                 # API Resources (JSON shaping, camelCase)
+  Services/
+    SnapshotService.php        # aggregation + confidence
+    PredictionService.php      # moving-average trend
+  Models/                      # Agent, Market, Report, Prediction (see 040)
+routes/
+  web.php                      # Inertia pages + report/flag/login (CSRF)
+```
+
+## The endpoint contract (freeze early — 3 UIs depend on it)
+
+- `POST /reports` → validate + store, stamp `agent_id` from session, return the row.
+- `GET  /reports` (or Inertia `reports` prop) → newest-first rows incl. `agentName`.
+- `GET  /dashboard` (Inertia `snapshots` prop) → 6 `PriceSnapshot` tiles.
+- `POST /reports/{id}/flag` → flag an outlier (excluded from snapshots).
+- Agent login (name + PIN) → set `agent_id` in session.
+
+## Conventions
+
+- **Validate with FormRequest classes.** Constrain to MVP enums: crop
+  `teff|coffee`, market `adama|addis_ababa|jimma`, reporter_type `official|crowd`;
+  reject others with a clear 422. Price bounded (> 0, < 100000).
+- **Thin controllers, logic in Services.** Controller resolves input, calls a
+  service, returns `Inertia::render(...)` or JSON.
+- Shape JSON with **API Resources** so field names match the frontend types
+  (camelCase: `reportCount`, `lastUpdated`, `agentName`).
+- **Attribution:** always stamp `agent_id` from the session — never trust a form
+  field for identity.
+
+## Agent auth (LOCKED: light)
+
+Name + PIN verified against the seeded `agents` table → store `agent_id` in
+session. No Fortify/Sanctum/roles/signup — that's the whole story.
+
+## SnapshotService — the engine
+
+The displayed price is a **derived aggregate over `reports`**, computed here:
+
+1. **Price** = recency-weighted average of recent, **non-flagged** reports for the
+   crop+market (official weighted above crowd, newer above older).
+2. **Confidence (0–100)** from report count + recency + agreement (variance).
+   Must visibly move as data arrives — it's the pitch.
+3. **Trend** (PredictionService) = last 7 days vs previous 7 → `up|down|stable` +
+   rough % change. No heavy ML (sparse data → confidently wrong). Hardcoded
+   Ethiopian seasonal windows OK.
+4. **Exclude `is_flagged`** everywhere — this makes Nati's flag correct the
+   dashboard live.
+
+## Data provenance
+
+Every snapshot carries `confidence`, `reportCount`, `lastUpdated`. Never return a
+bare price.
+
+## Parked
+
+Voice endpoints (`POST /voice/ask`), STT/TTS/LLM services, and IntentService are
+**out of scope for this showcase** (`030`). Don't build them unless the spine is
+done and the team opts back in.

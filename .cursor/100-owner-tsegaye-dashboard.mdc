@@ -1,0 +1,80 @@
+---
+description: OWNER — Tsegaye. Showcase live dashboard — price cards, market map, trends, live polling. The screen on the projector.
+globs: resources/js/Pages/Dashboard.tsx,resources/js/Components/PriceCard.tsx,resources/js/Components/MarketMap.tsx,resources/js/Components/TrendChart.tsx,resources/js/Components/**
+alwaysApply: false
+---
+
+# Owner: Tsegaye — Showcase Dashboard
+
+You own the **screen the judges watch**. It shows the six tiles (2 crops × 3
+markets) and updates live as agents enter data. This is where the pitch is won or
+lost — it must look clean and it must visibly change when data comes in.
+
+Read `000-project-overview.mdc` and `010-frontend-conventions.mdc` first.
+
+## What you build
+
+- `resources/js/Pages/Dashboard.tsx` — the page, route `GET /dashboard`.
+- `resources/js/Components/PriceCard.tsx` — one tile per crop+market.
+- `resources/js/Components/MarketMap.tsx` — Leaflet map of the three markets.
+- `resources/js/Components/TrendChart.tsx` — small sparkline/trend per tile (use
+  whatever chart lib the starter already has; don't add a second one).
+
+## Data you consume (from Nba)
+
+The page gets props from the controller — the six aggregated snapshots:
+
+```ts
+interface PriceSnapshot {
+  crop: 'teff' | 'coffee';
+  market: 'adama' | 'addis_ababa' | 'jimma';
+  price: number;         // ETB / quintal — the aggregated number, not a raw report
+  confidence: number;    // 0–100
+  reportCount: number;
+  lastUpdated: string;   // ISO
+  trend: 'up' | 'down' | 'stable';
+}
+```
+
+You do NOT compute prices or trends — Nba's engine does. You render what arrives.
+
+## Live update (LOCKED: polling, not websockets)
+
+Refresh on an interval so new agent entries appear within ~2–3s. With Inertia:
+
+```tsx
+import { router } from '@inertiajs/react';
+useEffect(() => {
+  const id = setInterval(() => router.reload({ only: ['snapshots'] }), 2500);
+  return () => clearInterval(id);
+}, []);
+```
+
+(Or Inertia v2 `usePoll(2500, { only: ['snapshots'] })` if available.) `only`
+keeps it cheap — re-fetch just the snapshots prop, no full page reload. When a
+tile's value changes, flash/animate it briefly so the change is *visible* on
+stage — that reaction is the demo.
+
+## Non-negotiable UI rule
+
+**Never render a bare price.** Every `PriceCard` shows price **+ confidence % +
+report count + last-updated**. That data-provenance stamp is the whole credibility
+pitch (it proves the number is crowd-backed, not invented). A card with no
+provenance is a bug.
+
+- Trend arrows: `↑` green, `↓` red, `→` grey. Colors are relative to movement,
+  not "good/bad".
+- Low confidence (< ~40%) should look visibly different (muted / "collecting
+  data") so the confidence story reads from across the room.
+
+## Map
+
+Leaflet, three markers (Adama, Addis Ababa, Jimma) using lat/long from the
+`markets` table. Popup shows that market's current teff & coffee snapshot. Import
+Leaflet CSS once; init in `useEffect`, clean up on unmount; never touch `window`
+at module top level.
+
+## Keep it demo-proof
+
+Dashboard must render fine when data is thin (0–1 reports) — show "collecting
+data / low confidence", never a crash or a blank tile.

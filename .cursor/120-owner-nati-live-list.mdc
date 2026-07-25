@@ -1,0 +1,72 @@
+---
+description: OWNER — Nati. Live data list — the master feed of every entered report, with attribution, filters, and flag-outlier.
+globs: resources/js/Pages/Reports.tsx,resources/js/Pages/LiveList.tsx,resources/js/Components/RecentReportsFeed.tsx,resources/js/Components/ReportRow.tsx
+alwaysApply: false
+---
+
+# Owner: Nati — Live Data List
+
+You own **the list of the live data** — the master feed of every report agents
+enter, newest first, updating live. This is the "watch the data pour in" screen
+and the home of the anti-poisoning / flag-outlier story.
+
+Read `000-project-overview.mdc` and `010-frontend-conventions.mdc` first.
+Coordinate the row shape with **Gezachew** and the `GET /reports` +
+`POST /reports/{id}/flag` endpoints with **Nba**.
+
+## What you build
+
+- `resources/js/Pages/Reports.tsx` (or `LiveList.tsx`) — route `GET /reports`.
+- `resources/js/Components/RecentReportsFeed.tsx` — the scrolling list.
+- `resources/js/Components/ReportRow.tsx` — one row (share with Gezachew's
+  "my recent entries").
+
+## The row
+
+Each report shows: **crop, market, price (ETB/quintal), reported-at, source
+(official/crowd), the agent who entered it (attribution — LOCKED), and a flag
+control.** Flagged rows render visibly struck/dimmed.
+
+```ts
+interface ReportRowData {
+  id: number;
+  crop: 'teff' | 'coffee';
+  market: 'adama' | 'addis_ababa' | 'jimma';
+  price: number;
+  reportedAt: string;    // ISO
+  source: 'official' | 'crowd';
+  agentName: string;     // attribution
+  isFlagged: boolean;
+  createdAt: string;
+}
+```
+
+## Live update (LOCKED: polling)
+
+```tsx
+useEffect(() => {
+  const id = setInterval(() => router.reload({ only: ['reports'] }), 2500);
+  return () => clearInterval(id);
+}, []);
+```
+
+New rows should slide/highlight in so the audience sees data arriving in real
+time as Gezachew submits.
+
+## Filters
+
+Client-side is fine for the demo: filter by crop and by market (dropdowns), and a
+"flagged only" toggle. Keep it snappy.
+
+## Flag-outlier (the anti-poisoning beat)
+
+A **flag** button per row → `POST /reports/{id}/flag`. Flagged reports are
+excluded from Tsegaye's aggregated snapshot (Nba enforces that server-side), so
+flagging a fake low price and watching the dashboard confidence/price correct
+itself is a strong live moment. Wire the button; the exclusion logic is Nba's.
+
+## Don't
+
+- Don't recompute aggregates here — you show raw reports; the dashboard shows the
+  aggregate.
+- Don't paginate heavily for the demo; newest ~50 is plenty.
