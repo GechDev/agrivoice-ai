@@ -1,138 +1,68 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Menu, Mic, X } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight, Play, TrendingUp } from 'lucide-react';
 
-import AppLogo from '@/components/app-logo';
-import { AppearanceToggle } from '@/components/appearance-toggle';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LANDING_IMAGES, LANDING_VIDEOS } from '@/components/landing/constants';
+import LandingNav from '@/components/landing/nav';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/use-translations';
-import { dashboard, home, reportPrice } from '@/routes';
-import { login as cooperativeLogin } from '@/routes/cooperative';
-import { login as portalLogin } from '@/routes/portal';
+import { dashboard, reportPrice } from '@/routes';
 
 export default function Hero() {
     const t = useTranslations();
-    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <section className="relative isolate min-h-[100svh] overflow-hidden bg-background text-foreground">
-            <div
+        <section className="relative isolate min-h-[100svh] overflow-hidden bg-foreground text-background">
+            <img
+                src={LANDING_IMAGES.hero}
+                alt=""
                 aria-hidden
-                className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_85%_20%,_var(--primary)_0%,_transparent_45%)] opacity-[0.07] dark:opacity-[0.12]"
+                className="absolute inset-0 size-full object-cover"
+                fetchPriority="high"
             />
-            <div
+            <video
                 aria-hidden
-                className="absolute inset-0 opacity-[0.035] dark:opacity-[0.06]"
-                style={{
-                    backgroundImage:
-                        'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.55\'/%3E%3C/svg%3E")',
-                }}
-            />
-
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] items-center justify-end pr-[8%] md:flex"
+                autoPlay
+                loop
+                muted
+                playsInline
+                poster={LANDING_IMAGES.hero}
+                className="absolute inset-0 size-full object-cover opacity-40 mix-blend-overlay"
             >
-                <div className="relative flex size-[min(42vw,30rem)] items-center justify-center animate-agrivoice-drift">
-                    <span className="absolute inset-[8%] rounded-full border border-foreground/10 animate-agrivoice-wave dark:border-white/15" />
-                    <span className="absolute inset-[8%] rounded-full border border-foreground/8 animate-agrivoice-wave [animation-delay:1s] dark:border-white/10" />
-                    <span className="absolute inset-[8%] rounded-full border border-foreground/8 animate-agrivoice-wave [animation-delay:2s] dark:border-white/10" />
-                    <span className="absolute inset-[22%] rounded-full bg-primary/20 blur-2xl animate-agrivoice-breathe" />
-                    <span className="relative flex size-28 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_50px_color-mix(in_oklch,var(--primary)_35%,transparent)] sm:size-32">
-                        <Mic className="size-12 sm:size-14" strokeWidth={1.5} />
-                    </span>
-                </div>
-            </div>
+                <source src={LANDING_VIDEOS.hero} type="video/mp4" />
+            </video>
+            <div
+                aria-hidden
+                className="landing-hero-gradient absolute inset-0"
+            />
+            <div
+                aria-hidden
+                className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_80%_30%,_oklch(0.72_0.13_145/0.25),_transparent_55%)]"
+            />
 
-            <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-                <Link href={home()} className="inline-flex items-center">
-                    <AppLogo size="md" />
-                </Link>
-                <nav className="flex items-center gap-1 sm:gap-2">
-                    <Link
-                        href={portalLogin()}
-                        className="hidden rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-block"
-                    >
-                        {t('Agent portal')}
-                    </Link>
-                    <Link
-                        href={cooperativeLogin()}
-                        className="hidden rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
-                    >
-                        {t('Cooperative login')}
-                    </Link>
-                    <AppearanceToggle />
-                    <LanguageSwitcher />
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full md:hidden"
-                        aria-expanded={menuOpen}
-                        aria-label={
-                            menuOpen ? t('Close menu') : t('Open menu')
-                        }
-                        onClick={() => setMenuOpen((open) => !open)}
-                    >
-                        {menuOpen ? (
-                            <X className="size-5" />
-                        ) : (
-                            <Menu className="size-5" />
-                        )}
-                    </Button>
-                </nav>
-            </header>
+            <LandingNav variant="overlay" />
 
-            {menuOpen ? (
-                <div className="relative z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur md:hidden">
-                    <div className="mx-auto flex max-w-7xl flex-col gap-1">
-                        <Link
-                            href={portalLogin()}
-                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            {t('Agent portal')}
-                        </Link>
-                        <Link
-                            href={cooperativeLogin()}
-                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            {t('Cooperative login')}
-                        </Link>
-                        <Link
-                            href={reportPrice()}
-                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            {t('Report a price')}
-                        </Link>
-                    </div>
-                </div>
-            ) : null}
-
-            <div className="relative z-10 mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-7xl flex-col justify-center px-4 pt-8 pb-16 sm:px-6 lg:px-8">
-                <div className="max-w-xl animate-agrivoice-rise md:max-w-2xl">
-                    <p className="font-serif text-[clamp(3.25rem,9vw,6.5rem)] leading-[0.92] font-semibold tracking-[-0.03em] text-foreground">
-                        {t('AgriVoice')}
+            <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col justify-center px-4 pt-28 pb-20 sm:px-6 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-8 lg:pt-24">
+                <div className="max-w-2xl animate-agrivoice-rise">
+                    <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white/90 uppercase backdrop-blur-sm">
+                        <TrendingUp className="size-3.5 text-primary" />
+                        {t('Real-time crop market intelligence')}
                     </p>
-                    <h1 className="mt-6 max-w-lg font-serif text-[clamp(1.6rem,3.4vw,2.35rem)] leading-snug font-medium text-foreground/90">
-                        {t('Know Your Price. Sell With Confidence.')}
+                    <h1 className="mt-6 font-serif text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.05] font-semibold tracking-[-0.02em]">
+                        {t('Turn market gossip into a live price picture farmers can trust.')}
                     </h1>
-                    <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+                    <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/72">
                         {t(
-                            'AgriVoice gives Ethiopian farmers real-time market prices in their own language — just by speaking.',
+                            'AgriVoice aggregates crowd-reported teff and coffee prices across Adama, Addis Ababa, and Jimma — with confidence scores, trends, and agent attribution. The moat is the data loop, not the AI.',
                         )}
                     </p>
-                    <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                         <Button
                             asChild
                             size="lg"
                             className="h-12 rounded-full px-8 text-base font-semibold"
                         >
                             <Link href={dashboard()}>
-                                {t('View live prices')}
+                                {t('View live dashboard')}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </Button>
@@ -140,12 +70,46 @@ export default function Hero() {
                             asChild
                             variant="outline"
                             size="lg"
-                            className="h-12 rounded-full px-6 text-base font-medium"
+                            className="h-12 rounded-full border-white/25 bg-white/5 px-6 text-base font-medium text-white hover:bg-white/10 hover:text-white"
+                        >
+                            <a href="#demo">
+                                <Play className="size-4" />
+                                {t('Watch the loop')}
+                            </a>
+                        </Button>
+                        <Button
+                            asChild
+                            variant="ghost"
+                            size="lg"
+                            className="h-12 rounded-full px-6 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
                         >
                             <Link href={reportPrice()}>
                                 {t('Report a price')}
                             </Link>
                         </Button>
+                    </div>
+                </div>
+
+                <div className="relative mt-14 hidden lg:mt-0 lg:block">
+                    <div className="landing-glass relative overflow-hidden rounded-3xl p-6 shadow-2xl">
+                        <img
+                            src={LANDING_IMAGES.market}
+                            alt={t('Ethiopian grain market')}
+                            className="aspect-[4/3] w-full rounded-2xl object-cover"
+                        />
+                        <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-background/95 p-4 text-foreground shadow-xl backdrop-blur-md">
+                            <p className="text-xs font-semibold tracking-wide text-primary uppercase">
+                                {t('The money shot')}
+                            </p>
+                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                                {t(
+                                    'An agent enters a price → it hits the live list → the dashboard tile updates in front of everyone.',
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="absolute -top-4 -right-4 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg">
+                        {t('ETB / quintal')}
                     </div>
                 </div>
             </div>
