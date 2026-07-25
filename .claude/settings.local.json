@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//usr/bin/**)",
+      "Read(//home/tsegaye/snap/claude-code/common/.config/**)",
+      "Bash(command -v herd)"
+    ]
+  }
+}
