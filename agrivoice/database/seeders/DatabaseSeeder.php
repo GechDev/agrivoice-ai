@@ -21,5 +21,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // ReportSeeder depends on agents and markets and pulls them in itself.
+        $this->call(ReportSeeder::class);
     }
 }
