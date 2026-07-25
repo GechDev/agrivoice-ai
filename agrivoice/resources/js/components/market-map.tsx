@@ -114,7 +114,7 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
     }, [markets, snapshotsByMarket]);
 
     return (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-md">
             <div className="border-b border-border px-5 py-3">
                 <h2 className="text-sm font-semibold tracking-wide text-card-foreground uppercase">
                     Market map

@@ -78,7 +78,7 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
     return (
         <article
             className={cn(
-                'flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm transition-all duration-500',
+                'flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-md transition-all duration-500',
                 lowConfidence && 'opacity-70',
                 flash && 'scale-[1.02] border-primary bg-accent ring-2 ring-primary/40',
             )}

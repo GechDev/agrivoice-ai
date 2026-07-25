@@ -28,7 +28,7 @@ export function TrendChart({ snapshots }: TrendChartProps) {
     );
 
     return (
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-md">
             <h2 className="text-sm font-semibold tracking-wide text-card-foreground uppercase">
                 7-day trend
             </h2>
