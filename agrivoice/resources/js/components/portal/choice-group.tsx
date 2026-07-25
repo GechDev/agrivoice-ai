@@ -2,6 +2,13 @@ import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * A choice option with a label, optional description, and optional icon.
+ *
+ * Used by both the crop picker and the reporter-type picker in the
+ * entry form. The generic TValue parameter allows the same component
+ * to handle both Crop and ReporterType values.
+ */
 export type Choice<TValue extends string> = {
     value: TValue;
     label: string;
@@ -10,18 +17,34 @@ export type Choice<TValue extends string> = {
 };
 
 type ChoiceGroupProps<TValue extends string> = {
-    /** Groups the radios, which is what gives arrow-key navigation for free. */
+    /** Groups the native radio inputs for arrow-key navigation. */
     name: string;
+    /** Screen-reader legend for the fieldset. */
     legend: string;
+    /** Currently selected value. */
     value: TValue;
+    /** Available choices to render as tappable cards. */
     choices: readonly Choice<TValue>[];
+    /** Callback when the user selects a choice. */
     onChange: (value: TValue) => void;
     className?: string;
 };
 
 /**
- * A set of selectable cards built on native radios, so an agent can move
- * through the options from the keyboard without leaving the form.
+ * Accessible radio card group built on native `<input type="radio">`.
+ *
+ * Why native radios instead of custom state?
+ * 1. Arrow-key navigation works for free (browser native)
+ * 2. Screen readers announce the group correctly via <fieldset>/<legend>
+ * 3. The `has-[:checked]` CSS selector handles selection styling without JS
+ *
+ * Each card is a `<label>` wrapping a visually-hidden radio input.
+ * When clicked, the radio fires onChange → parent updates state →
+ * the `has-[:checked]` selector applies the selected style.
+ *
+ * Used for:
+ * - Crop picker (7 options with icons)
+ * - Reporter type picker (2 options with descriptions)
  */
 export default function ChoiceGroup<TValue extends string>({
     name,

@@ -1,27 +1,41 @@
-import type { PriceSnapshot } from '@/types';
+import { useTranslations } from '@/hooks/use-translations';
+import { cropLabel, marketLabel } from '@/lib/agrivoice';
 import { cn } from '@/lib/utils';
-
-const CROP_LABELS: Record<PriceSnapshot['crop'], string> = {
-    teff: 'Teff',
-    coffee: 'Coffee',
-};
-
-const MARKET_LABELS: Record<PriceSnapshot['market'], string> = {
-    adama: 'Adama',
-    addis_ababa: 'Addis Ababa',
-    jimma: 'Jimma',
-};
+import type { PriceSnapshot } from '@/types';
 
 type TrendChartProps = {
     snapshots: PriceSnapshot[];
 };
 
 /**
- * Lightweight SVG trend bars — no second chart library (starter has none).
- * Bars encode changePercent; color follows trend direction.
+ * Horizontal bar chart showing 7-day price trends for all crop×market pairs.
+ *
+ * Each row shows:
+ * - Crop + market label (left)
+ * - Horizontal bar (middle) — length proportional to changePercent
+ * - Percentage value (right)
+ *
+ * The bar design:
+ * - Bars grow from the centre line (0%) outward
+ * - Positive bars grow right (price went up)
+ * - Negative bars grow left (price went down)
+ * - Color follows trend: violet (up), red (down), grey (stable)
+ * - Minimum bar width is 4% for pairs with data (so a tiny change
+ *   is still visible), 0% for pairs with no data
+ *
+ * The maximum bar width is normalised to the largest absolute
+ * changePercent across all snapshots. This ensures the biggest
+ * mover always fills the bar, and smaller movers scale proportionally.
+ *
+ * No external chart library — just CSS widths on div elements.
+ * This was a deliberate choice: the starter kit has no chart library,
+ * and a full D3/Recharts setup would be overkill for simple bars.
  */
 export function TrendChart({ snapshots }: TrendChartProps) {
+    const t = useTranslations();
+    // Only include snapshots that have trend data (changePercent !== null)
     const withChange = snapshots.filter((s) => s.changePercent !== null);
+    // Find the largest absolute change to normalise bar widths
     const maxAbs = Math.max(
         5,
         ...withChange.map((s) => Math.abs(s.changePercent ?? 0)),
@@ -44,6 +58,7 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                 <ul className="space-y-3">
                     {snapshots.map((snapshot) => {
                         const change = snapshot.changePercent ?? 0;
+                        // Normalise bar width: largest mover = 100%, others scale
                         const width = Math.min(
                             100,
                             (Math.abs(change) / maxAbs) * 100,
@@ -56,8 +71,8 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                                 className="grid grid-cols-[7rem_1fr_3.5rem] items-center gap-3 text-sm"
                             >
                                 <span className="truncate text-muted-foreground">
-                                    {CROP_LABELS[snapshot.crop]} ·{' '}
-                                    {MARKET_LABELS[snapshot.market]}
+                                    {t(cropLabel(snapshot.crop))} ·{' '}
+                                    {marketLabel(snapshot.market)}
                                 </span>
                                 <div className="relative h-2 overflow-hidden rounded-full bg-muted">
                                     <div
@@ -69,6 +84,7 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                                                 'bg-destructive',
                                             snapshot.trend === 'stable' &&
                                                 'bg-muted-foreground/50',
+                                            // Anchor positive bars to the left, negative to the right
                                             positive ? 'left-1/2' : 'right-1/2',
                                         )}
                                         style={{

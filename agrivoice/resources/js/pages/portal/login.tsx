@@ -3,6 +3,7 @@ import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { ArrowRight } from 'lucide-react';
 import { useRef } from 'react';
 
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +17,18 @@ import { Spinner } from '@/components/ui/spinner';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 
+/** Number of digits in the agent PIN. */
 const PIN_LENGTH = 4;
 
+/**
+ * Animated onboarding steps shown on the brand panel.
+ *
+ * These explain the data flow to the audience during the demo:
+ *   Agent enters price → data joins the picture → confidence updates
+ *
+ * The vertical stepper with numbered circles creates a visual narrative
+ * that reinforces the "crowd data → trustworthy prices" story.
+ */
 const LOOP_STEPS = [
     {
         title: 'An agent records a real sale',
@@ -34,6 +45,7 @@ const LOOP_STEPS = [
 ];
 
 type LoginProps = {
+    /** Seeded agent names — rendered as tappable cards, not a text input. */
     agentNames: string[];
 };
 
@@ -50,11 +62,18 @@ export default function PortalLogin({ agentNames }: LoginProps) {
         post('/portal/login', { onError: () => setData('pin', '') });
     };
 
+    /**
+     * Select an agent by name and auto-focus the PIN input.
+     *
+     * Tapping a name card is the first half of authentication.
+     * The PIN is the second half. Auto-focusing the PIN input
+     * keeps the flow smooth — the agent doesn't have to tap
+     * the input field manually.
+     */
     const selectAgent = (name: string): void => {
         setData('name', name);
         clearErrors();
 
-        // Picking a name is only half the job; move them straight to the PIN.
         pinContainerRef.current?.querySelector('input')?.focus();
     };
 
@@ -64,7 +83,10 @@ export default function PortalLogin({ agentNames }: LoginProps) {
 
             <BrandPanel />
 
-            <div className="flex items-center justify-center px-6 py-12 sm:px-10">
+            <div className="relative flex items-center justify-center px-6 py-12 sm:px-10">
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+                    <AppearanceToggle />
+                </div>
                 <div className="w-full max-w-sm">
                     <p className="text-lg font-bold tracking-[-0.01em] text-primary lg:hidden">
                         AgriVoice
@@ -87,6 +109,7 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                             submit();
                         }}
                     >
+                        {/* Agent name picker — tappable cards instead of text input */}
                         <div className="space-y-3">
                             <Label>Agent</Label>
 
@@ -129,6 +152,7 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                                     })}
                                 </div>
                             ) : (
+                                // Fallback: text input if no seeded agents exist
                                 <Input
                                     id="name"
                                     value={data.name}
@@ -144,6 +168,7 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                             <InputError message={errors.name} />
                         </div>
 
+                        {/* PIN input — 4-digit OTP-style input with auto-submit */}
                         <div className="space-y-3" ref={pinContainerRef}>
                             <Label htmlFor="pin">PIN</Label>
 
@@ -193,12 +218,24 @@ export default function PortalLogin({ agentNames }: LoginProps) {
     );
 }
 
+/**
+ * Left-side brand panel with onboarding narrative.
+ *
+ * Hidden on mobile (the form takes full width). On desktop, it shows
+ * the AgriVoice branding, a 3-step data flow explanation, and the
+ * list of tracked crops/markets. This panel sets the context for the
+ * audience before the agent signs in.
+ */
 function BrandPanel() {
     return (
-        <div className="relative hidden overflow-hidden bg-primary p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <div className="relative hidden overflow-hidden bg-zinc-950 p-10 text-zinc-50 lg:flex lg:flex-col lg:justify-between xl:p-14">
             <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-[0.14]"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,_var(--primary)_0%,_transparent_45%)] opacity-20"
+            />
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.08]"
                 style={{
                     backgroundImage:
                         'radial-gradient(currentColor 1px, transparent 1px)',
@@ -207,36 +244,37 @@ function BrandPanel() {
             />
 
             <div className="relative">
-                <p className="text-xs font-semibold tracking-widest uppercase opacity-75">
+                <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
                     AgriVoice field network
                 </p>
-                <h1 className="mt-5 max-w-md text-4xl leading-[1.1] font-bold tracking-[-0.02em] xl:text-[2.75rem]">
+                <h1 className="mt-5 max-w-md font-serif text-4xl leading-[1.1] font-semibold tracking-[-0.02em] xl:text-[2.75rem]">
                     Every price has a name behind it.
                 </h1>
-                <p className="mt-5 max-w-md leading-relaxed opacity-85">
+                <p className="mt-5 max-w-md leading-relaxed text-zinc-400">
                     Market gossip is anonymous and stale. A reported sale is
                     signed, timed and comparable — that is the difference this
                     portal exists to create.
                 </p>
             </div>
 
+            {/* 3-step data flow narrative */}
             <ol className="relative mt-14 space-y-7">
                 {LOOP_STEPS.map((step, index) => (
                     <li key={step.title} className="flex gap-4">
                         <div className="flex flex-col items-center">
-                            <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary-foreground/30 bg-primary-foreground/15 text-sm font-semibold">
+                            <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-sm font-semibold">
                                 {index + 1}
                             </span>
                             {index < LOOP_STEPS.length - 1 && (
                                 <span
                                     aria-hidden
-                                    className="mt-2 w-px flex-1 bg-primary-foreground/25"
+                                    className="mt-2 w-px flex-1 bg-white/25"
                                 />
                             )}
                         </div>
                         <div className="pb-1">
                             <p className="font-semibold">{step.title}</p>
-                            <p className="mt-1 max-w-sm text-sm leading-relaxed opacity-80">
+                            <p className="mt-1 max-w-sm text-sm leading-relaxed text-zinc-400">
                                 {step.body}
                             </p>
                         </div>
@@ -244,18 +282,15 @@ function BrandPanel() {
                 ))}
             </ol>
 
-            <div className="relative mt-14 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-primary-foreground/20 pt-6 text-sm">
-                <span className="opacity-70">Tracking</span>
-                <span className="font-medium">Teff · Coffee</span>
-                <span
-                    aria-hidden
-                    className="h-4 w-px bg-primary-foreground/25"
-                />
+            {/* Crop/market/unit footer */}
+            <div className="relative mt-14 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/15 pt-6 text-sm">
+                <span className="text-zinc-500">Tracking</span>
+                <span className="font-medium">
+                    Teff · Coffee · Maize · Wheat · Sesame · Pulses · Sorghum
+                </span>
+                <span aria-hidden className="h-4 w-px bg-white/20" />
                 <span className="font-medium">Adama · Addis Ababa · Jimma</span>
-                <span
-                    aria-hidden
-                    className="h-4 w-px bg-primary-foreground/25"
-                />
+                <span aria-hidden className="h-4 w-px bg-white/20" />
                 <span className="font-medium">ETB per quintal</span>
             </div>
         </div>

@@ -1,49 +1,62 @@
+import {
+    MessageCircle,
+    MessagesSquare,
+    Navigation,
+    ShoppingBag,
+    Thermometer,
+    Languages,
+} from 'lucide-react';
+
 import { useTranslations } from '@/hooks/use-translations';
 
 const roadmap = [
-    { emoji: '📱', text: 'WhatsApp & Telegram integration' },
-    { emoji: '💬', text: 'SMS support for farmers without smartphones' },
-    { emoji: '🗣️', text: 'More Ethiopian languages, including Afaan Oromo' },
-    { emoji: '🧭', text: 'Sell now vs. wait recommendations' },
-    { emoji: '🌡️', text: 'Live price heat maps across regions' },
-    { emoji: '🛒', text: 'A direct farmer-to-buyer marketplace' },
+    { icon: MessagesSquare, text: 'WhatsApp & Telegram integration' },
+    { icon: MessageCircle, text: 'SMS support for farmers without smartphones' },
+    { icon: Languages, text: 'More Ethiopian languages, including Afaan Oromo' },
+    { icon: Navigation, text: 'Sell now vs. wait recommendations' },
+    { icon: Thermometer, text: 'Live price heat maps across regions' },
+    { icon: ShoppingBag, text: 'A direct farmer-to-buyer marketplace' },
 ];
 
 export default function Vision() {
     const t = useTranslations();
 
     return (
-        <section className="bg-background px-6 py-24 lg:px-8">
-            <div className="mx-auto max-w-6xl">
-                <h2 className="mb-6 text-center text-3xl font-bold tracking-wide lg:text-4xl">
-                    {t('Our Vision')}
-                </h2>
-
-                <p className="mx-auto max-w-3xl text-center text-lg leading-relaxed text-muted-foreground">
-                    {t(
-                        'AgriVoice envisions a future where every farmer in Ethiopia has equal access to the market information they need to thrive. By removing language, literacy, and connectivity barriers, we are building a more transparent and profitable agricultural economy for everyone.',
-                    )}
-                </p>
-
-                <h3 className="mb-8 mt-16 text-center text-2xl font-semibold tracking-wide">
-                    {t("What's next:")}
-                </h3>
-
-                <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
-                    {roadmap.map((item) => (
-                        <div
-                            key={item.text}
-                            className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-sm"
-                        >
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-xl">
-                                {item.emoji}
-                            </span>
-                            <span className="text-sm leading-snug text-foreground">
-                                {t(item.text)}
-                            </span>
-                        </div>
-                    ))}
+        <section className="bg-muted/50 py-24 sm:py-32">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-3xl text-center">
+                    <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
+                        {t('Our Vision')}
+                    </p>
+                    <h2 className="mt-4 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
+                        {t('Closing the information gap, one conversation at a time')}
+                    </h2>
+                    <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+                        {t(
+                            'To become Ethiopia\'s real-time agricultural market intelligence platform — closing the information gap between farmers and traders.',
+                        )}
+                    </p>
                 </div>
+
+                <ul className="mx-auto mt-16 grid max-w-5xl gap-4 sm:grid-cols-2">
+                    {roadmap.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <li
+                                key={item.text}
+                                className="flex items-center gap-4 rounded-2xl bg-card/80 px-5 py-4 ring-1 ring-border/80"
+                            >
+                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                    <Icon className="size-5" strokeWidth={1.75} />
+                                </span>
+                                <span className="text-sm font-medium text-foreground sm:text-base">
+                                    {t(item.text)}
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ul>
             </div>
         </section>
     );

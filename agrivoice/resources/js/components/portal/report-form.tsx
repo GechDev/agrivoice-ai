@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { Coffee, Wheat } from 'lucide-react';
-import { type FormEvent, type KeyboardEvent, useRef } from 'react';
+import { Coffee, Leaf, Sprout, Wheat } from 'lucide-react';
+import { type FormEvent, type KeyboardEvent, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 
 import InputError from '@/components/input-error';
@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/hooks/use-translations';
 import {
     CROPS,
     REPORTER_TYPES,
@@ -29,31 +30,72 @@ import {
 } from '@/lib/agrivoice';
 import type { Crop, Market, MarketOption, ReporterType } from '@/types';
 
+/**
+ * Lucide icons for each crop type.
+ *
+ * Used in the crop ChoiceGroup to give each option a visual identifier.
+ * Maps are used instead of conditional rendering for O(1) lookup.
+ */
 const CROP_ICONS = {
     teff: Wheat,
     coffee: Coffee,
+    maize: Leaf,
+    wheat: Wheat,
+    sesame: Sprout,
+    pulses: Sprout,
+    sorghum: Leaf,
 } as const;
-
-const cropChoices: readonly Choice<Crop>[] = CROPS.map((crop) => ({
-    value: crop,
-    label: cropLabel(crop),
-    icon: CROP_ICONS[crop],
-}));
-
-const reporterTypeChoices: readonly Choice<ReporterType>[] = REPORTER_TYPES.map(
-    (reporterType) => ({
-        value: reporterType,
-        label: reporterTypeLabel(reporterType),
-        description: reporterTypeDescription(reporterType),
-    }),
-);
 
 type ReportFormProps = {
     markets: MarketOption[];
 };
 
+/**
+ * Multi-step price entry form for the data-entry portal.
+ *
+ * Form flow:
+ * 1. Pick a crop (ChoiceGroup with icons)
+ * 2. Pick a market (Select dropdown) + observation date
+ * 3. Enter the price (large ETB input with unit labels)
+ * 4. Pick reporter type (ChoiceGroup with descriptions)
+ * 5. Submit (button or Ctrl+Enter)
+ *
+ * After successful submission:
+ * - Price input is cleared (crop + market preserved for batch entry)
+ * - Price input is auto-focused for the next entry
+ * - Toast notification confirms the save with details
+ *
+ * Keyboard shortcut: Ctrl+Enter (or Cmd+Enter on Mac) submits the form
+ * from anywhere — agents don't need to reach for the mouse.
+ *
+ * The form POSTs to /reports (ReportController::store), which redirects
+ * back to /portal (ReportController::create) with updated props.
+ */
 export default function ReportForm({ markets }: ReportFormProps) {
+    const t = useTranslations();
     const priceInputRef = useRef<HTMLInputElement>(null);
+
+    // Build crop choices with icons for the ChoiceGroup component
+    const cropChoices: readonly Choice<Crop>[] = useMemo(
+        () =>
+            CROPS.map((crop) => ({
+                value: crop,
+                label: t(cropLabel(crop)),
+                icon: CROP_ICONS[crop],
+            })),
+        [t],
+    );
+
+    // Build reporter type choices with descriptions
+    const reporterTypeChoices: readonly Choice<ReporterType>[] = useMemo(
+        () =>
+            REPORTER_TYPES.map((reporterType) => ({
+                value: reporterType,
+                label: reporterTypeLabel(reporterType),
+                description: reporterTypeDescription(reporterType),
+            })),
+        [],
+    );
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm({
@@ -67,17 +109,20 @@ export default function ReportForm({ markets }: ReportFormProps) {
     const submit = (): void => {
         post('/reports', {
             preserveScroll: true,
-            // Keeps the crop and market an agent is currently working through.
+            // preserveState keeps the crop/market selections intact
+            // so the agent doesn't have to re-pick them after each save
             preserveState: true,
             onSuccess: () => {
                 const savedPrice = parsePriceInput(data.price);
 
+                // Clear only the price field — keep crop/market/date/type
                 reset('price');
                 clearErrors();
+                // Auto-focus the price input for rapid batch entry
                 priceInputRef.current?.focus();
 
                 toast.success('Price saved', {
-                    description: `${formatPrice(savedPrice)} ETB/quintal · ${cropLabel(data.crop)} in ${marketLabel(data.market)}`,
+                    description: `${formatPrice(savedPrice)} ETB/quintal · ${t(cropLabel(data.crop))} in ${marketLabel(data.market)}`,
                 });
             },
             onError: () => priceInputRef.current?.focus(),
@@ -89,6 +134,7 @@ export default function ReportForm({ markets }: ReportFormProps) {
         submit();
     };
 
+    // Ctrl+Enter / Cmd+Enter keyboard shortcut for fast submission
     const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>): void => {
         if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
             event.preventDefault();
@@ -102,6 +148,7 @@ export default function ReportForm({ markets }: ReportFormProps) {
             onKeyDown={handleKeyDown}
             className="space-y-7"
         >
+            {/* Crop picker — tappable icon cards */}
             <div className="space-y-3">
                 <Label>Crop</Label>
                 <ChoiceGroup
@@ -110,11 +157,12 @@ export default function ReportForm({ markets }: ReportFormProps) {
                     value={data.crop}
                     choices={cropChoices}
                     onChange={(crop) => setData('crop', crop)}
-                    className="sm:grid-cols-2"
+                    className="sm:grid-cols-2 lg:grid-cols-3"
                 />
                 <InputError message={errors.crop} />
             </div>
 
+            {/* Market + date — side by side on desktop */}
             <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-3">
                     <Label htmlFor="market">Market</Label>
@@ -165,6 +213,7 @@ export default function ReportForm({ markets }: ReportFormProps) {
                 </div>
             </div>
 
+            {/* Price input — large, prominent, with ETB/unit labels */}
             <div className="space-y-3">
                 <Label htmlFor="price">Price</Label>
                 <div className="relative">
@@ -198,6 +247,7 @@ export default function ReportForm({ markets }: ReportFormProps) {
                 <InputError message={errors.price} />
             </div>
 
+            {/* Reporter type — official vs crowd, with descriptions */}
             <div className="space-y-3">
                 <Label>Where the price came from</Label>
                 <ChoiceGroup
@@ -212,6 +262,7 @@ export default function ReportForm({ markets }: ReportFormProps) {
                 <InputError message={errors.reporter_type} />
             </div>
 
+            {/* Submit button + keyboard shortcut hint */}
             <div className="flex flex-col-reverse items-center gap-4 border-t pt-6 sm:flex-row sm:justify-between">
                 <p className="text-xs text-muted-foreground">
                     Filed under your name.{' '}

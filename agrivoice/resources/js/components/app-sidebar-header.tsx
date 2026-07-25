@@ -1,3 +1,4 @@
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -14,7 +15,8 @@ export function AppSidebarHeader({
                 <SidebarTrigger className="-ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-1">
+                <AppearanceToggle />
                 <LanguageSwitcher />
             </div>
         </header>

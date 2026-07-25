@@ -10,7 +10,7 @@ import { useTranslations } from '@/hooks/use-translations';
 const faqItems = [
     {
         q: 'What crops does AgriVoice support right now?',
-        a: "We're launching with Teff and Coffee — two of Ethiopia's most important crops — with plans to expand to Maize, Wheat, and Haricot Beans within the first year.",
+        a: "We support teff, coffee, maize, wheat, sesame, pulses, and sorghum — among Ethiopia's most important crops — across Adama, Addis Ababa, and Jimma.",
     },
     {
         q: 'Which markets are covered?',
@@ -46,7 +46,7 @@ const faqItems = [
     },
     {
         q: 'Who is AgriVoice built for?',
-        a: 'Smallholder farmers, traders, and anyone involved in Ethiopia\'s agricultural supply chain who needs timely, trustworthy market information to make better decisions.',
+        a: "Smallholder farmers, traders, and anyone involved in Ethiopia's agricultural supply chain who needs timely, trustworthy market information to make better decisions.",
     },
 ];
 
@@ -54,24 +54,21 @@ export default function FAQ() {
     const t = useTranslations();
 
     return (
-        <section className="bg-background px-6 py-24 lg:px-8">
+        <section className="bg-muted/40 px-6 py-24 lg:px-8">
             <div className="mx-auto max-w-3xl">
-                <h2 className="mb-12 text-center text-3xl font-bold tracking-wide lg:text-4xl">
+                <h2 className="mb-12 text-center font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
                     {t('Frequently Asked Questions')}
                 </h2>
 
-                <div className="space-y-3">
-                    {faqItems.map((item, index) => (
-                        <Collapsible
-                            key={index}
-                            className="group rounded-xl border border-border bg-card shadow-sm"
-                        >
-                            <CollapsibleTrigger className="flex w-full items-center justify-between px-6 py-5 text-left text-sm font-medium text-foreground transition-colors hover:text-primary">
+                <div className="divide-y divide-border overflow-hidden rounded-[1.5rem] border border-border bg-card">
+                    {faqItems.map((item) => (
+                        <Collapsible key={item.q} className="group">
+                            <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent/30 sm:text-base">
                                 <span>{t(item.q)}</span>
                                 <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                             </CollapsibleTrigger>
                             <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                                <div className="border-t border-border px-6 py-4 text-sm leading-relaxed text-muted-foreground">
+                                <div className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">
                                     {t(item.a)}
                                 </div>
                             </CollapsibleContent>

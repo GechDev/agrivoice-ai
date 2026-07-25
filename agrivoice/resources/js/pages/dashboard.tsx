@@ -3,8 +3,27 @@ import { MarketMap } from '@/components/market-map';
 import { PriceCard } from '@/components/price-card';
 import { TrendChart } from '@/components/trend-chart';
 import { useTranslations } from '@/hooks/use-translations';
+import { CROPS } from '@/lib/agrivoice';
 import { dashboard } from '@/routes';
 import type { MarketMarker, PriceSnapshot } from '@/types';
+
+/**
+ * Dashboard page — the projector-facing view for the live demo.
+ *
+ * Layout:
+ *   - Hero header with "Live" indicator
+ *   - Grid of PriceCards (7 crops × 3 markets = 21 tiles)
+ *   - Bottom section: MarketMap (left 3/5) + TrendChart (right 2/5)
+ *
+ * Polling: usePoll(2500) refreshes the `snapshots` prop every 2.5s.
+ * Only the `snapshots` prop is re-fetched (via `only` option), not
+ * the entire page. This keeps the response small and avoids re-
+ * rendering the map/markers on every tick.
+ *
+ * Sort order: markets first (Adama → Addis Ababa → Jimma), then
+ * crops within each market (the CROPS array order). This creates
+ * a consistent visual rhythm on the dashboard grid.
+ */
 
 type DashboardProps = {
     snapshots: PriceSnapshot[];
@@ -14,6 +33,7 @@ type DashboardProps = {
 export default function Dashboard({ snapshots, markets }: DashboardProps) {
     const t = useTranslations();
 
+    // Update the sidebar breadcrumb to highlight "Dashboard"
     setLayoutProps({
         breadcrumbs: [
             {
@@ -23,18 +43,19 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
         ],
     });
 
-    // Inertia v3 poll helper (from Boost search-docs): auto-cleanup on unmount,
-    // throttles in background tabs, and rest mode avoids overlapping requests
-    // on flaky conference wifi.
-    usePoll(
-        2500,
-        { only: ['snapshots'] },
-        { mode: 'rest', keepAlive: true },
-    );
+    // Poll every 2.5s for fresh snapshot data.
+    // - `only: ['snapshots']` — only re-fetch this prop, not markets
+    // - `mode: 'rest'` — don't fire a new request if the previous one hasn't finished
+    // - `keepAlive: true` — keep polling even when the tab is in the background
+    //   (useful for conference demo where the projector tab may be inactive)
+    usePoll(2500, { only: ['snapshots'] }, { mode: 'rest', keepAlive: true });
 
+    // Sort snapshots by market (Adama → Addis Ababa → Jimma), then by crop.
+    // This creates a consistent grid layout where each market's crops
+    // appear together visually.
     const ordered = [...snapshots].sort((a, b) => {
         const marketOrder = ['adama', 'addis_ababa', 'jimma'];
-        const cropOrder = ['teff', 'coffee'];
+        const cropOrder = [...CROPS];
         const marketDiff =
             marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market);
 
@@ -49,16 +70,31 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
         <>
             <Head title={t('Dashboard')} />
             <div className="flex flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <header className="flex flex-col gap-1">
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        Live market prices
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Crowd-backed ETB/quintal · updates every 2.5s · teff
-                        &amp; coffee across Adama, Addis Ababa, and Jimma
-                    </p>
+                {/* Hero header with live indicator and radial gradient */}
+                <header className="relative overflow-hidden rounded-[1.75rem] border border-border bg-zinc-950 px-6 py-7 text-zinc-50 shadow-lg">
+                    <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,_var(--primary)_0%,_transparent_40%)] opacity-20"
+                    />
+                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-zinc-200">
+                                <span className="size-1.5 animate-pulse rounded-full bg-primary" />
+                                {t('Live')}
+                            </div>
+                            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
+                                {t('Live market prices')}
+                            </h1>
+                            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
+                                {t(
+                                    'Crowd-backed ETB/quintal · updates every 2.5s · teff, coffee, maize, wheat, sesame, pulses & sorghum across Adama, Addis Ababa, and Jimma',
+                                )}
+                            </p>
+                        </div>
+                    </div>
                 </header>
 
+                {/* Price tile grid — responsive: 1 col mobile, 2 col sm, 3 col xl */}
                 <section
                     aria-label="Price snapshots"
                     className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
@@ -71,6 +107,7 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
                     ))}
                 </section>
 
+                {/* Map (3/5 width) + Trend chart (2/5 width) */}
                 <section className="grid gap-4 lg:grid-cols-5">
                     <div className="lg:col-span-3">
                         <MarketMap markets={markets} snapshots={snapshots} />

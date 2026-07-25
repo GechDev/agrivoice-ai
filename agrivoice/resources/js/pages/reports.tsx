@@ -11,8 +11,28 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useTranslations } from '@/hooks/use-translations';
+import { CROPS, cropLabel } from '@/lib/agrivoice';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import type { Crop, MarketSlug, ReportRowData } from '@/types';
+
+/**
+ * Live report list — newest agent entries with filtering and flagging.
+ *
+ * This page serves two purposes:
+ * 1. PUBLIC FEED: Shows the 50 most recent reports with agent attribution.
+ *    Anyone can view this — no authentication required.
+ *
+ * 2. MODERATION: Each report row has a flag button (via ReportRow's
+ *    action slot) that quarantines outliers. Flagged reports disappear
+ *    from the dashboard aggregates.
+ *
+ * Polling: usePoll(2500) refreshes the `reports` prop every 2.5s.
+ * New entries from the portal appear within seconds.
+ *
+ * Filtering: Client-side filtering by crop, market, and flagged status.
+ * The backend always returns the full 50-report set; the filters narrow
+ * it in the browser without a round-trip.
+ */
 
 type ReportsPageProps = {
     reports: ReportRowData[];
@@ -36,12 +56,14 @@ export default function Reports({ reports }: ReportsPageProps) {
         ],
     });
 
-    usePoll(
-        2500,
-        { only: ['reports'] },
-        { mode: 'rest', keepAlive: true },
-    );
+    // Poll every 2.5s — only re-fetch the reports prop.
+    // The filter state (crop, market, flaggedOnly) is local React state
+    // and survives the poll without resetting.
+    usePoll(2500, { only: ['reports'] }, { mode: 'rest', keepAlive: true });
 
+    // Client-side filter: narrow the full report list by crop, market,
+    // and flagged status. useMemo avoids re-filtering on every render
+    // when only unrelated state changes.
     const filtered = useMemo(() => {
         return reports.filter((report) => {
             if (crop !== 'all' && report.crop !== crop) {
@@ -74,6 +96,7 @@ export default function Reports({ reports }: ReportsPageProps) {
                     </p>
                 </header>
 
+                {/* Filter bar — crop, market, flagged toggle, and result count */}
                 <section
                     aria-label="Filters"
                     className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4 shadow-md"
@@ -86,13 +109,24 @@ export default function Reports({ reports }: ReportsPageProps) {
                                 setCrop(value as CropFilter)
                             }
                         >
-                            <SelectTrigger id="filter-crop" className="w-[140px]">
+                            <SelectTrigger
+                                id="filter-crop"
+                                className="w-[140px]"
+                            >
                                 <SelectValue placeholder="Crop" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All crops</SelectItem>
-                                <SelectItem value="teff">Teff</SelectItem>
-                                <SelectItem value="coffee">Coffee</SelectItem>
+                                <SelectItem value="all">
+                                    {t('All crops')}
+                                </SelectItem>
+                                {CROPS.map((cropOption) => (
+                                    <SelectItem
+                                        key={cropOption}
+                                        value={cropOption}
+                                    >
+                                        {t(cropLabel(cropOption))}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

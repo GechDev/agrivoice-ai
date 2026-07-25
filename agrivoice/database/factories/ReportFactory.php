@@ -55,4 +55,29 @@ class ReportFactory extends Factory
     {
         return $this->state(fn () => ['crop' => Crop::Coffee]);
     }
+
+    public function maize(): static
+    {
+        return $this->state(fn () => ['crop' => Crop::Maize]);
+    }
+
+    public function wheat(): static
+    {
+        return $this->state(fn () => ['crop' => Crop::Wheat]);
+    }
+
+    public function sesame(): static
+    {
+        return $this->state(fn () => ['crop' => Crop::Sesame]);
+    }
+
+    public function pulses(): static
+    {
+        return $this->state(fn () => ['crop' => Crop::Pulses]);
+    }
+
+    public function sorghum(): static
+    {
+        return $this->state(fn () => ['crop' => Crop::Sorghum]);
+    }
 }

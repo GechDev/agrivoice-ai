@@ -55,7 +55,7 @@ read `reports`, so treat its columns as a frozen contract.
 | Column          | Type          | Notes                                                    |
 | --------------- | ------------- | -------------------------------------------------------- |
 | `id`            | id            |                                                          |
-| `crop`          | string        | `teff` \| `coffee` — cast to `App\Enums\Crop`             |
+| `crop`          | string        | `teff` \| `coffee` \| `maize` \| `wheat` \| `sesame` \| `pulses` \| `sorghum` — cast to `App\Enums\Crop` |
 | `market_id`     | FK → markets  |                                                          |
 | `price`         | decimal(10,2) | ETB per quintal                                          |
 | `reporter_type` | string        | `official` \| `crowd` — cast to `App\Enums\ReporterType`  |
@@ -88,7 +88,7 @@ visits are redirected to the sign-in screen; API clients get a 401.
 
 | Field           | Rules                                                  |
 | --------------- | ------------------------------------------------------ |
-| `crop`          | required, `teff` \| `coffee`                            |
+| `crop`          | required, `teff` \| `coffee` \| `maize` \| `wheat` \| `sesame` \| `pulses` \| `sorghum` |
 | `market`        | required, `adama` \| `addis_ababa` \| `jimma` (slug)     |
 | `price`         | required, numeric, `> 0`, `< 100000`. `8,500` is accepted |
 | `reporter_type` | required, `official` \| `crowd`                          |
@@ -112,7 +112,7 @@ the live list. If you rename a column, update both.
 `ReportSeeder` pulls in `AgentSeeder` and `MarketSeeder`, then derives — never
 randomises — a fortnight of history so re-seeding is reproducible:
 
-- 4 agents, 3 markets, 49 reports across all 6 crop-and-market pairs.
+- 4 agents, 3 markets, seeded reports across all 21 crop-and-market pairs.
 - Uneven coverage (14 reports down to 2) so confidence visibly varies.
 - Mixed `official`/`crowd` with a gentle upward drift, so trends compute.
 - Two obvious, deliberately **unflagged** outliers for the flag-outlier demo.

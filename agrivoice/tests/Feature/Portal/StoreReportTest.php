@@ -84,11 +84,26 @@ test('a backdated report is stored at the start of that day', function () {
 });
 
 test('crops outside the fixed scope are rejected', function () {
-    $this->post(route('reports.store'), validReport(['crop' => 'maize']))
+    $this->post(route('reports.store'), validReport(['crop' => 'avocado']))
         ->assertSessionHasErrors('crop');
 
     expect(Report::count())->toBe(0);
 });
+
+test('each tracked crop can be saved', function (string $crop) {
+    $this->post(route('reports.store'), validReport(['crop' => $crop]))
+        ->assertSessionHasNoErrors();
+
+    expect(Report::sole()->crop->value)->toBe($crop);
+})->with([
+    'teff',
+    'coffee',
+    'maize',
+    'wheat',
+    'sesame',
+    'pulses',
+    'sorghum',
+]);
 
 test('markets outside the fixed scope are rejected', function () {
     $this->post(route('reports.store'), validReport(['market' => 'hawassa']))

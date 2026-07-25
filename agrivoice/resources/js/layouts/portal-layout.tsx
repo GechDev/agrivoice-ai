@@ -2,10 +2,27 @@ import { Link, router } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
 import type { AgentSummary } from '@/types';
 
+/**
+ * Layout wrapper for the data-entry portal.
+ *
+ * This is a separate layout from the main app shell because portal
+ * agents are not Fortify-authenticated users. The sidebar, account
+ * menu, and settings links don't apply to them — they just need
+ * a minimal header with the agent's identity and a logout button.
+ *
+ * Layout structure:
+ * - Sticky header with: AgriVoice logo · "Field data entry" label ·
+ *   appearance toggle · agent avatar + name · logout button
+ * - Main content area (centered, max-width 6xl)
+ *
+ * The logout button fires a POST to /portal/logout (not a link)
+ * because logout should be a state-changing action, not a navigation.
+ */
 type PortalLayoutProps = {
     agent: AgentSummary;
     children: ReactNode;
@@ -32,6 +49,7 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
+                        <AppearanceToggle />
                         <div className="flex items-center gap-2.5 rounded-full border border-border/70 bg-card py-1 pr-3 pl-1">
                             <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                                 {getInitials(agent.name)}

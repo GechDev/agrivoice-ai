@@ -12,49 +12,101 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection as SupportCollection;
 
 /**
- * Fills all six crop-and-market pairs with a plausible fortnight of history, so
- * the dashboard is already alive before anyone enters a price on stage.
+ * Generates a deterministic 13-day price history for all crop×market pairs.
  *
- * Every number here is derived rather than random: re-seeding produces the same
- * database, which is what makes the demo rehearsable.
+ * This is the most complex seeder in the system. Its purpose is to make
+ * the dashboard look alive from the first page load — no manual data
+ * entry required during a demo.
+ *
+ * DESIGN PRINCIPLES:
+ * 1. DETERMINISTIC: Every number is derived from a formula, not random().
+ *    Re-seeding always produces the same database. This makes the demo
+ *    rehearseable — the same trends appear every time.
+ *
+ * 2. UNEVEN COVERAGE: Different crop×market pairs have different report
+ *    counts (2 to 14). This makes the confidence score vary visibly
+ *    across tiles — some are "well-evidenced" (high confidence), others
+ *    are "thin" (low confidence). Uniform coverage would make confidence
+ *    meaningless.
+ *
+ * 3. GENTLE UPWARD DRIFT: Prices climb ~0.4% per day across the fortnight.
+ *    This ensures the trend engine (PredictionService) computes a
+ *    meaningful "Up" trend for most pairs. The drift is small enough
+ *    to feel realistic but large enough to exceed the 2% threshold
+ *    over 7 days.
+ *
+ * 4. PER-REPORTER DISAGREEMENT: A repeating offset pattern simulates
+ *    honest disagreement between reporters. Higher-value crops (coffee,
+ *    sesame) get 3× the spread, making them noisier.
+ *
+ * 5. DELIBERATE OUTLIERS: Two obviously wrong prices (ETB 1,450 for teff,
+ *    ETB 41,000 for coffee) are left unflagged. During the demo, the
+ *    presenter flags one of these to show the anti-poisoning story.
  */
 class ReportSeeder extends Seeder
 {
+    /** Number of days of history to generate. */
     private const HISTORY_IN_DAYS = 13;
 
     /**
-     * Opening ETB per quintal for each pair. Addis pays a premium; Jimma coffee
-     * is cheaper at source.
+     * Base ETB/quintal price for each crop×market pair.
+     *
+     * Addis Ababa consistently pays a premium (higher transport costs,
+     * larger consumer market). Jimma prices are lower at source.
+     * These are plausible but fictional prices for the showcase.
      *
      * @var array<string, array<string, int>>
      */
     private const BASE_PRICES = [
         'teff' => ['adama' => 8_600, 'addis_ababa' => 9_400, 'jimma' => 8_900],
         'coffee' => ['adama' => 18_200, 'addis_ababa' => 19_600, 'jimma' => 16_800],
+        'maize' => ['adama' => 3_800, 'addis_ababa' => 4_200, 'jimma' => 3_600],
+        'wheat' => ['adama' => 4_900, 'addis_ababa' => 5_400, 'jimma' => 4_700],
+        'sesame' => ['adama' => 13_200, 'addis_ababa' => 14_500, 'jimma' => 12_800],
+        'pulses' => ['adama' => 5_600, 'addis_ababa' => 6_100, 'jimma' => 5_400],
+        'sorghum' => ['adama' => 3_400, 'addis_ababa' => 3_800, 'jimma' => 3_200],
     ];
 
     /**
-     * Deliberately uneven coverage, so confidence on the dashboard ranges from
-     * well-evidenced to visibly thin instead of being uniform everywhere.
+     * Number of reports per crop×market pair across the 13-day window.
+     *
+     * Ranges from 2 (coffee/adama) to 14 (teff/adama). This deliberate
+     * variation makes the confidence score visually distinct on the
+     * dashboard — tiles with 2 reports show low confidence, tiles with
+     * 14 show high confidence.
      *
      * @var array<string, array<string, int>>
      */
     private const REPORT_COUNTS = [
         'teff' => ['adama' => 14, 'addis_ababa' => 9, 'jimma' => 3],
         'coffee' => ['adama' => 2, 'addis_ababa' => 7, 'jimma' => 12],
+        'maize' => ['adama' => 8, 'addis_ababa' => 5, 'jimma' => 4],
+        'wheat' => ['adama' => 6, 'addis_ababa' => 7, 'jimma' => 3],
+        'sesame' => ['adama' => 3, 'addis_ababa' => 5, 'jimma' => 8],
+        'pulses' => ['adama' => 5, 'addis_ababa' => 4, 'jimma' => 3],
+        'sorghum' => ['adama' => 7, 'addis_ababa' => 3, 'jimma' => 5],
     ];
 
     /**
-     * Repeating per-report offsets stand in for honest disagreement between
-     * reporters without needing a random number generator.
+     * Repeating price offsets (ETB) that simulate reporter disagreement.
+     *
+     * Applied cyclically across reports: report 0 gets +0, report 1 gets
+     * -120, report 2 gets +80, etc. Higher-value crops (coffee, sesame)
+     * multiply these by 3 to reflect wider market spreads.
      *
      * @var list<int>
      */
     private const PRICE_OFFSETS = [0, -120, 80, -40, 160, -200, 60, 100, -80];
 
     /**
-     * Left unflagged on purpose: flagging one of these live is how the
-     * anti-poisoning story gets told.
+     * Deliberately wrong prices left unflagged for the demo.
+     *
+     * - Teff at ETB 1,450 (normal: ~8,600–9,400) — obviously too low
+     * - Coffee at ETB 41,000 (normal: ~16,800–19,600) — obviously too high
+     *
+     * The presenter flags one of these during the demo to show how
+     * the anti-poisoning story works: flag → dashboard recalculates
+     * → the outlier disappears from the aggregate.
      *
      * @var list<array{crop: string, market: string, price: int}>
      */
@@ -65,7 +117,8 @@ class ReportSeeder extends Seeder
 
     public function run(): void
     {
-        $this->callOnce([AgentSeeder::class, MarketSeeder::class]);
+        // Seed agents and markets first — reports reference both by FK.
+        $this->call([AgentSeeder::class, MarketSeeder::class]);
 
         $agents = Agent::query()->orderBy('id')->get();
         $marketIds = Market::query()->pluck('id', 'slug');
@@ -82,6 +135,8 @@ class ReportSeeder extends Seeder
 
                 for ($index = 0; $index < $count; $index++) {
                     $daysAgo = $this->daysAgoFor($index, $count);
+                    // Every 3rd report is official; the rest are crowd.
+                    // This gives a ~33% official / 67% crowd mix.
                     $reporterType = $index % 3 === 0 ? ReporterType::Official : ReporterType::Crowd;
 
                     Report::query()->create([
@@ -102,7 +157,11 @@ class ReportSeeder extends Seeder
     }
 
     /**
-     * Spreads a market's reports across the fortnight, oldest first.
+     * Spread reports evenly across the 13-day window.
+     *
+     * The oldest report is day 0 (13 days ago), the newest is day 13 (today).
+     * Reports are distributed so the first report is at the start and the
+     * last is at the end, with even spacing in between.
      */
     private function daysAgoFor(int $index, int $count): int
     {
@@ -114,31 +173,52 @@ class ReportSeeder extends Seeder
     }
 
     /**
-     * A gentle climb across the fortnight, so the trend engine has a real
-     * movement to find, plus per-reporter disagreement around it.
+     * Compute a price with gentle upward drift and reporter disagreement.
+     *
+     * The formula:  basePrice + drift + variation
+     *
+     * drift = basePrice × 0.004 × daysElapsed
+     *   → ~0.4% per day → ~5.2% over 13 days
+     *   → exceeds the 2% PredictionService threshold after ~5 days
+     *
+     * variation = PRICE_OFFSETS[index % 9] × spreadMultiplier
+     *   → simulates honest disagreement between reporters
+     *   → coffee/sesame get 3× spread (wider market variance)
      */
     private function priceFor(string $crop, int $basePrice, int $index, int $daysAgo): float
     {
         $daysElapsed = self::HISTORY_IN_DAYS - $daysAgo;
         $drift = $basePrice * 0.004 * $daysElapsed;
 
-        // Coffee trades an order of magnitude higher, so its spread is wider.
-        $spread = $crop === Crop::Coffee->value ? 3 : 1;
+        // Higher-value crops trade with a wider spread between reporters.
+        $spread = in_array($crop, [Crop::Coffee->value, Crop::Sesame->value], true) ? 3 : 1;
         $variation = self::PRICE_OFFSETS[$index % count(self::PRICE_OFFSETS)] * $spread;
 
         return round($basePrice + $drift + $variation, 2);
     }
 
+    /**
+     * Map reporter type to a plausible data source string.
+     *
+     * Official sources are labelled "wfp" (World Food Programme) or
+     * "ecx" (Ethiopian Commodity Exchange) depending on the crop.
+     * Crowd sources are labelled "farmer".
+     */
     private function sourceFor(string $crop, ReporterType $reporterType): string
     {
         if ($reporterType === ReporterType::Crowd) {
             return 'farmer';
         }
 
-        return $crop === Crop::Coffee->value ? 'ecx' : 'wfp';
+        return in_array($crop, [Crop::Coffee->value, Crop::Sesame->value], true) ? 'ecx' : 'wfp';
     }
 
     /**
+     * Insert the two deliberately wrong outlier reports.
+     *
+     * These are recent (within the last 2 hours) so they're visible
+     * on the dashboard and can be flagged during the demo.
+     *
      * @param  Collection<int, Agent>  $agents
      * @param  SupportCollection<string, int>  $marketIds
      */
@@ -159,7 +239,7 @@ class ReportSeeder extends Seeder
     }
 
     /**
-     * Rotates entries across the roster so attribution varies on screen.
+     * Rotate agents so attribution varies across the report list.
      *
      * @param  Collection<int, Agent>  $agents
      */

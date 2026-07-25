@@ -5,12 +5,25 @@ namespace Database\Seeders;
 use App\Models\Agent;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeds the fixed roster of data-entry agents.
+ *
+ * There is no sign-up screen by design — agents are demo fixtures,
+ * not real users. Each agent has a name (their login identifier)
+ * and a 4-digit PIN (their password). The PIN is stored via the
+ * 'hashed' cast so it's bcrypt-hashed on write.
+ *
+ * These PINs are shared verbally during live demos. They are NOT
+ * secrets — the security gate is that you must know both the name
+ * AND the PIN, and the error message is deliberately vague.
+ *
+ * Uses updateOrCreate to be idempotent — re-seeding doesn't create
+ * duplicates.
+ */
 class AgentSeeder extends Seeder
 {
     /**
-     * The showcase roster. There is no sign-up screen by design, so these are
-     * fixed demo fixtures rather than credentials — their purpose is that every
-     * price on the dashboard can name the agent who collected it.
+     * Demo agent roster. Names are the team members' first names.
      *
      * @var list<array{name: string, pin: string}>
      */

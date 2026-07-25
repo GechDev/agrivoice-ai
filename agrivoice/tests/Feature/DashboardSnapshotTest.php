@@ -12,7 +12,7 @@ test('guests are redirected away from the dashboard', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
 });
 
-test('authenticated users see six snapshots and three markets', function () {
+test('authenticated users see twenty-one snapshots and three markets', function () {
     Market::factory()->adama()->create();
     Market::factory()->addisAbaba()->create();
     Market::factory()->jimma()->create();
@@ -23,9 +23,9 @@ test('authenticated users see six snapshots and three markets', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard')
-            ->has('snapshots', 6)
+            ->has('snapshots', 21)
             ->has('markets', 3)
-            ->where('snapshots.0.crop', fn ($crop) => in_array($crop, ['teff', 'coffee'], true))
+            ->where('snapshots.0.crop', fn ($crop) => in_array($crop, Crop::values(), true))
             ->where('snapshots.0.confidence', 0)
             ->where('snapshots.0.reportCount', 0)
         );
@@ -61,7 +61,7 @@ test('dashboard snapshots exclude flagged reports and raise confidence with data
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard')
-            ->has('snapshots', 6)
+            ->has('snapshots', 21)
             ->where('snapshots', function ($snapshots) {
                 $teffAdama = collect($snapshots)->first(
                     fn ($s) => ($s['crop'] ?? null) === 'teff'

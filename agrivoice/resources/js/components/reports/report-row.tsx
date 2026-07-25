@@ -1,7 +1,8 @@
-import { Coffee, Flag, Wheat } from 'lucide-react';
+import { Coffee, Flag, Leaf, Sprout, Wheat } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { useTranslations } from '@/hooks/use-translations';
 import {
     cropLabel,
     formatObservedOn,
@@ -11,10 +12,20 @@ import {
     reporterTypeLabel,
 } from '@/lib/agrivoice';
 import { cn } from '@/lib/utils';
-import type { ReportRowData } from '@/types';
+import type { Crop, ReportRowData } from '@/types';
 
 /** How long a just-created row announces itself for. */
 const HIGHLIGHT_WINDOW_MS = 2500;
+
+const CROP_ICONS = {
+    teff: Wheat,
+    coffee: Coffee,
+    maize: Leaf,
+    wheat: Wheat,
+    sesame: Sprout,
+    pulses: Sprout,
+    sorghum: Leaf,
+} as const;
 
 /**
  * Freshness comes from the row's own timestamp rather than from comparing
@@ -32,6 +43,7 @@ type ReportRowProps = {
 };
 
 export default function ReportRow({ report, action }: ReportRowProps) {
+    const t = useTranslations();
     const [isHighlighted, setIsHighlighted] = useState(() =>
         wasJustCreated(report.createdAt),
     );
@@ -49,7 +61,7 @@ export default function ReportRow({ report, action }: ReportRowProps) {
         return () => window.clearTimeout(timer);
     }, [isHighlighted]);
 
-    const CropIcon = report.crop === 'coffee' ? Coffee : Wheat;
+    const CropIcon = CROP_ICONS[report.crop as Crop] ?? Wheat;
 
     return (
         <li
@@ -69,7 +81,7 @@ export default function ReportRow({ report, action }: ReportRowProps) {
 
                     <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
-                            {cropLabel(report.crop)}
+                            {t(cropLabel(report.crop))}
                             <span className="text-muted-foreground"> · </span>
                             {marketLabel(report.market)}
                         </p>

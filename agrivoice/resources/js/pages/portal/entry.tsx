@@ -14,6 +14,24 @@ import PortalLayout from '@/layouts/portal-layout';
 import { formatTimeAgo } from '@/lib/agrivoice';
 import type { AgentSummary, MarketOption, ReportRowData } from '@/types';
 
+/**
+ * Data-entry portal — where agents record price observations.
+ *
+ * Layout (two-column on desktop):
+ *   LEFT: ReportForm for entering a new price (crop → market → price → type)
+ *   RIGHT: Sticky card showing the agent's 8 most recent entries
+ *
+ * The form POSTs to /reports, which redirects back here. On re-mount,
+ * the page re-fetches recentReports from the server, so the new entry
+ * appears in the "My recent entries" list immediately.
+ *
+ * Props are passed by ReportController::create():
+ * - agent: {id, name} for the header
+ * - markets: reference data for the form's market picker
+ * - recentReports: this agent's last 8 entries
+ * - entriesToday: count for the progress stat
+ */
+
 type EntryProps = {
     agent: AgentSummary;
     markets: MarketOption[];
@@ -33,6 +51,7 @@ export default function Entry({
         <PortalLayout agent={agent}>
             <Head title="Record a price" />
 
+            {/* Page header with stats */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-[-0.01em] sm:text-3xl">
@@ -44,6 +63,7 @@ export default function Entry({
                     </p>
                 </div>
 
+                {/* Quick stats: entries today + time since last entry */}
                 <dl className="flex shrink-0 items-center divide-x divide-border overflow-hidden rounded-2xl border bg-card">
                     <Stat
                         label="Your entries today"
@@ -58,6 +78,7 @@ export default function Entry({
                 </dl>
             </div>
 
+            {/* Two-column layout: form (left) + recent entries (right, sticky) */}
             <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
                 <Card className="rounded-3xl">
                     <CardHeader>
@@ -113,6 +134,7 @@ export default function Entry({
     );
 }
 
+/** Small stat display used in the header (label + value). */
 function Stat({ label, value }: { label: string; value: string }) {
     return (
         <div className="px-5 py-3">

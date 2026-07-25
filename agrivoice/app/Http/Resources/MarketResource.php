@@ -7,7 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin Market
+ * Serialises a Market model for the entry form and dashboard map.
+ *
+ * Sends slug (not numeric ID) as the identifier because the front-end
+ * uses slugs for URL parameters and enum lookups. Coordinates are
+ * included for the Leaflet map markers on the dashboard.
  */
 class MarketResource extends JsonResource
 {

@@ -4,19 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { flag } from '@/actions/App/Http/Controllers/ReportController';
+import { useTranslations } from '@/hooks/use-translations';
+import { cropLabel, marketLabel } from '@/lib/agrivoice';
 import { cn } from '@/lib/utils';
 import type { ReportRowData } from '@/types';
-
-const CROP_LABELS: Record<ReportRowData['crop'], string> = {
-    teff: 'Teff',
-    coffee: 'Coffee',
-};
-
-const MARKET_LABELS: Record<ReportRowData['market'], string> = {
-    adama: 'Adama',
-    addis_ababa: 'Addis Ababa',
-    jimma: 'Jimma',
-};
 
 function formatPrice(price: number): string {
     return new Intl.NumberFormat('en-ET', {
@@ -50,6 +41,7 @@ type ReportRowProps = {
 };
 
 export function ReportRow({ report }: ReportRowProps) {
+    const t = useTranslations();
     const [flash, setFlash] = useState(false);
     const [flagging, setFlagging] = useState(false);
     const seen = useRef(false);
@@ -96,11 +88,11 @@ export function ReportRow({ report }: ReportRowProps) {
         >
             <div className="font-semibold text-card-foreground">
                 <span className={cn(report.isFlagged && 'line-through')}>
-                    {CROP_LABELS[report.crop]}
+                    {t(cropLabel(report.crop))}
                 </span>
             </div>
             <div className="text-sm text-muted-foreground">
-                {MARKET_LABELS[report.market]}
+                {marketLabel(report.market)}
             </div>
             <div
                 className={cn(

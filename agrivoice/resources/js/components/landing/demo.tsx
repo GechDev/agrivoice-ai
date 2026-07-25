@@ -1,52 +1,59 @@
-import { Play } from 'lucide-react';
+import { Check, Play } from 'lucide-react';
 
 import { useTranslations } from '@/hooks/use-translations';
+
+const highlights = [
+    'Ask a question in Amharic',
+    'Watch AgriVoice fetch live prices',
+    'Hear a spoken, natural-language answer',
+    'See the market map light up',
+    'Watch a new crowdsourced report appear in real time',
+];
 
 export default function Demo() {
     const t = useTranslations();
 
     return (
-        <section className="bg-muted px-6 py-24 lg:px-8">
-            <div className="mx-auto max-w-6xl">
-                <h2 className="mb-4 text-center text-3xl font-bold tracking-wide lg:text-4xl">
-                    {t('See It In Action')}
-                </h2>
-
-                <div className="mx-auto mt-10 max-w-4xl">
-                    <div className="relative aspect-video overflow-hidden rounded-[--radius] bg-gradient-to-br from-green-900 via-green-800 to-emerald-950 shadow-[0_0_30px_0px_hsl(0_0%_77%_/_0.45)]">
-                        <div className="absolute inset-0 bg-black/40" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="flex size-20 cursor-pointer items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform hover:scale-105">
-                                <Play className="ml-1 size-10 fill-green-700 text-green-700" />
-                            </div>
-                        </div>
-                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                            <div className="flex h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                            <span className="text-sm font-medium text-white/80">
-                                {t('Demo Preview')}
-                            </span>
+        <section className="bg-background py-24 sm:py-32">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+                    <div className="relative overflow-hidden rounded-[2rem] bg-zinc-950 shadow-xl">
+                        <div
+                            aria-hidden
+                            className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_var(--primary)_0%,_transparent_50%)] opacity-20"
+                        />
+                        <div className="relative flex aspect-[16/10] flex-col items-center justify-center gap-5 px-6">
+                            <button
+                                type="button"
+                                className="group flex size-20 items-center justify-center rounded-full bg-zinc-50 text-zinc-950 shadow-lg transition-transform hover:scale-105"
+                                aria-label={t('Play demo')}
+                            >
+                                <Play className="ml-1 size-8 fill-current" />
+                            </button>
+                            <p className="text-sm font-medium tracking-wide text-zinc-400">
+                                {t('See It In Action')}
+                            </p>
                         </div>
                     </div>
-                </div>
 
-                <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-                    {[
-                        t('Ask a question in Amharic'),
-                        t('Watch AgriVoice fetch live prices'),
-                        t('Hear a spoken, natural-language answer'),
-                        t('See the market map light up'),
-                        t('Watch a new crowdsourced report appear in real time'),
-                    ].map((feature) => (
-                        <div
-                            key={feature}
-                            className="flex items-center gap-3 rounded-xl border border-border bg-background px-5 py-4 shadow-sm"
-                        >
-                            <span className="flex size-2 shrink-0 rounded-full bg-primary" />
-                            <span className="text-sm leading-snug text-foreground">
-                                {feature}
-                            </span>
-                        </div>
-                    ))}
+                    <div>
+                        <h2 className="font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
+                            {t('A conversation that moves markets')}
+                        </h2>
+                        <ul className="mt-10 space-y-4">
+                            {highlights.map((item) => (
+                                <li
+                                    key={item}
+                                    className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground sm:text-base"
+                                >
+                                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                                        <Check className="size-3.5" strokeWidth={2.5} />
+                                    </span>
+                                    {t(item)}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>

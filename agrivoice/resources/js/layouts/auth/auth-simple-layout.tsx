@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { home } from '@/routes';
@@ -11,7 +12,8 @@ export default function AuthSimpleLayout({
 }: AuthLayoutProps) {
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="fixed top-4 right-4 z-50">
+            <div className="fixed top-4 right-4 z-50 flex items-center gap-1">
+                <AppearanceToggle />
                 <LanguageSwitcher />
             </div>
             <div className="w-full max-w-sm">

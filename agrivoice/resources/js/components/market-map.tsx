@@ -4,20 +4,24 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
+import { cropLabel } from '@/lib/agrivoice';
 import type { MarketMarker, PriceSnapshot } from '@/types';
 
-// Vite breaks Leaflet's default icon URLs — rebind them once.
+// Vite breaks Leaflet's default icon URLs by changing the asset paths
+// during bundling. We rebind the icons once at module load time so
+// markers render correctly. Without this, all markers show broken images.
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
 });
 
-const CROP_LABELS: Record<PriceSnapshot['crop'], string> = {
-    teff: 'Teff',
-    coffee: 'Coffee',
-};
-
+/**
+ * Format a price for the map popup.
+ *
+ * Shows "Collecting data" when there are no reports, otherwise
+ * formats as "8,600 ETB/q".
+ */
 function formatPrice(price: number, count: number): string {
     if (count === 0) {
         return 'Collecting data';
@@ -31,11 +35,31 @@ type MarketMapProps = {
     snapshots: PriceSnapshot[];
 };
 
+/**
+ * Interactive Leaflet map showing the three market locations.
+ *
+ * Each marker shows a popup with the market name, region, and a
+ * summary of all crop prices at that market. The popup is HTML
+ * (not React) because Leaflet doesn't support React components
+ * natively.
+ *
+ * Map initialization:
+ * - Centre: Ethiopia (8.5°N, 38.5°E), zoom level 6
+ * - Tile layer: OpenStreetMap (free, no API key needed)
+ * - Scroll wheel zoom disabled (prevents accidental zoom on projector)
+ * - Markers auto-fit with 40px padding
+ *
+ * Updates: The markers effect re-runs on every `snapshots` change
+ * (which happens every 2.5s via polling). It clears all markers and
+ * re-adds them with fresh popup content. This is simpler than
+ * diffing individual markers and fast enough for 3 markets.
+ */
 export function MarketMap({ markets, snapshots }: MarketMapProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<L.LayerGroup | null>(null);
 
+    // Group snapshots by market slug for efficient lookup when building popups
     const snapshotsByMarket = useMemo(() => {
         const map = new Map<string, PriceSnapshot[]>();
 
@@ -48,6 +72,7 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         return map;
     }, [snapshots]);
 
+    // Initialize the Leaflet map once on mount, clean up on unmount
     useEffect(() => {
         if (!containerRef.current || mapRef.current) {
             return;
@@ -74,6 +99,7 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         };
     }, []);
 
+    // Rebuild markers whenever markets or snapshots change
     useEffect(() => {
         const map = mapRef.current;
         const layer = markersRef.current;
@@ -88,10 +114,11 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
 
         for (const market of markets) {
             const marketSnapshots = snapshotsByMarket.get(market.slug) ?? [];
+            // Build an HTML popup with all crop prices at this market
             const lines = marketSnapshots
                 .map(
                     (s) =>
-                        `<strong>${CROP_LABELS[s.crop]}</strong>: ${formatPrice(s.price, s.reportCount)} · ${s.confidence}% conf · ${s.reportCount} reports`,
+                        `<strong>${cropLabel(s.crop)}</strong>: ${formatPrice(s.price, s.reportCount)} · ${s.confidence}% conf · ${s.reportCount} reports`,
                 )
                 .join('<br/>');
 
@@ -105,6 +132,7 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
             points.push([market.latitude, market.longitude]);
         }
 
+        // Auto-zoom to fit all markers with padding
         if (points.length > 0) {
             map.fitBounds(L.latLngBounds(points), {
                 padding: [40, 40],

@@ -10,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import language from '@/routes/language';
+import { cn } from '@/lib/utils';
 
 const languages = [
     { code: 'en', label: 'English', nativeLabel: 'English' },
@@ -17,7 +18,7 @@ const languages = [
     { code: 'om', label: 'Afaan Oromoo', nativeLabel: 'Afaan Oromoo' },
 ];
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ className }: { className?: string }) {
     const { locale } = usePage().props;
     const currentLocale = (locale as string) || 'en';
 
@@ -32,7 +33,11 @@ export function LanguageSwitcher() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('rounded-full', className)}
+                >
                     <Languages className="size-5" />
                     <span className="sr-only">
                         {current?.nativeLabel ?? 'English'}
