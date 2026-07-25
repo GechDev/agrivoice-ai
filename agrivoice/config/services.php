@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'addis_ai' => [
+        'api_key' => env('ADDIS_AI_API_KEY'),
+        'voice_id' => env('ADDIS_AI_VOICE_ID', 'am-hamen'),
+    ],
+
 ];

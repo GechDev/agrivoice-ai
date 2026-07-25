@@ -6,12 +6,14 @@ import {
     LayoutGrid,
     List,
     LogIn,
+    Phone,
     Users,
 } from 'lucide-react';
-import { index as membersIndex } from '@/actions/App/Http/Controllers/CooperativeMemberController';
 import { index as cooperativeBillingIndex } from '@/actions/App/Http/Controllers/CooperativeBillingController';
+import { index as membersIndex } from '@/actions/App/Http/Controllers/CooperativeMemberController';
 import { index as cooperativePricesIndex } from '@/actions/App/Http/Controllers/CooperativePriceController';
 import { index as cooperativeReportsIndex } from '@/actions/App/Http/Controllers/CooperativeReportController';
+import { index as ivrIndex } from '@/actions/App/Http/Controllers/IvrController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -81,6 +83,11 @@ export function AppSidebar() {
                   href: reportsIndex(),
                   icon: List,
               },
+            {
+                title: t('IVR demo'),
+                href: ivrIndex(),
+                icon: Phone,
+            },
           ];
 
     return (
