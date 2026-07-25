@@ -14,13 +14,32 @@ export default function Trust() {
                         <ShieldCheck className="size-7" strokeWidth={1.75} />
                     </span>
                     <h2 className="mt-8 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
-                        {t('Built On Trust, Not Guesswork')}
+                        {t('Built on trust, not guesswork')}
                     </h2>
                     <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
                         {t(
-                            'AgriVoice never fabricates a price. Every answer comes from real reported market data — with a confidence score and report count — so farmers always know how reliable the information is.',
+                            'AgriVoice never fabricates a price. Every tile shows real reported data — with confidence %, report count, and agent attribution — so farmers and buyers know exactly how much to trust the number.',
                         )}
                     </p>
+                    <dl className="mx-auto mt-12 grid max-w-2xl gap-6 sm:grid-cols-3">
+                        {[
+                            { k: '0', label: 'Invented prices' },
+                            { k: '100%', label: 'Attributed reports' },
+                            { k: 'Live', label: 'Outlier flagging' },
+                        ].map((item) => (
+                            <div
+                                key={item.label}
+                                className="rounded-2xl border border-border bg-card px-4 py-5"
+                            >
+                                <dt className="font-serif text-3xl font-semibold text-primary">
+                                    {item.k}
+                                </dt>
+                                <dd className="mt-1 text-xs font-medium text-muted-foreground">
+                                    {t(item.label)}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
                 </AnimateIn>
             </div>
         </section>

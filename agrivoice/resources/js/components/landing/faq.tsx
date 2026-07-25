@@ -10,44 +10,36 @@ import { useTranslations } from '@/hooks/use-translations';
 
 const faqItems = [
     {
-        q: 'What crops does AgriVoice support right now?',
-        a: 'We support teff, coffee, maize, wheat, sesame, pulses, and sorghum — among Ethiopia\'s most important crops — across Adama, Addis Ababa, and Jimma.',
+        q: 'What crops and markets does the demo cover?',
+        a: 'Teff and coffee across Adama, Addis Ababa, and Jimma — six live dashboard tiles, ETB per quintal.',
     },
     {
-        q: 'Which markets are covered?',
-        a: "Adama, Addis Ababa, and Jimma at launch. We're adding more regions as our reporter network grows.",
+        q: 'Where do prices come from?',
+        a: 'Real reports submitted by named agents and participants. AgriVoice aggregates them — it never invents or estimates a price.',
     },
     {
-        q: 'What languages can I use?',
-        a: 'Amharic, Afaan Oromoo, and English are supported in the web app today. More spoken-language coverage is on our roadmap.',
+        q: 'What is the “money shot” demo?',
+        a: 'An agent enters a price in the portal, it appears on the live list, and the dashboard tile updates in front of the audience — usually within seconds.',
     },
     {
-        q: 'Do I need a smartphone or app to use AgriVoice?',
-        a: 'For the hackathon MVP, yes — a smartphone browser is enough, no app download required. WhatsApp, Telegram, and SMS support are planned so farmers without smartphones can use AgriVoice too.',
+        q: 'How does confidence scoring work?',
+        a: 'Recent reports weigh more. Official sources get a higher weight than crowd reports. The tile shows both a confidence % and how many reports back it.',
     },
     {
-        q: 'Where do the prices come from?',
-        a: 'Prices come from real reports submitted by farmers, traders, and market participants. AgriVoice never invents or estimates a price — it only ever repeats and summarizes real reported data.',
+        q: 'Can bad data poison the dashboard?',
+        a: 'Moderators can flag outliers. Flagged reports are excluded from every aggregate — you can demo this live on stage.',
     },
     {
-        q: 'How accurate is the information?',
-        a: "Every price comes with a confidence score and a count of how many reports it's based on, so you always know how reliable an answer is before you act on it.",
+        q: 'Is voice still part of AgriVoice?',
+        a: 'Voice is on the roadmap but parked for the hackathon demo. Amharic STT is risky on stage; the crowd-data loop is what proves the business.',
     },
     {
-        q: 'How does the price prediction work?',
-        a: "We use simple, transparent forecasting (like moving averages and recent trend analysis) to estimate whether prices are likely to rise, fall, or hold steady over the coming days. It's a short-term guide, not a guarantee.",
+        q: 'Who pays in the business model?',
+        a: 'Farmers use it free. Cooperatives, traders, NGOs, and input suppliers pay for dashboards, APIs, and reporting — the organizations that already buy market visibility.',
     },
     {
-        q: 'Can I contribute price data myself?',
-        a: 'Yes. Use Report a price to enter what you sold, for how much, and where. Your report helps make the system more accurate for every farmer.',
-    },
-    {
-        q: 'Is AgriVoice free to use?',
-        a: 'Yes, during the hackathon MVP and pilot phase, AgriVoice is free for farmers to use.',
-    },
-    {
-        q: 'Who is AgriVoice built for?',
-        a: 'Smallholder farmers, traders, and anyone who needs fast, trustworthy market information — starting with web and voice-first experiences.',
+        q: 'How do agents log in?',
+        a: 'Light PIN auth — no full user accounts. Every entry shows who collected it (“entered by Gezachew”).',
     },
 ];
 
@@ -55,11 +47,11 @@ export default function FAQ() {
     const t = useTranslations();
 
     return (
-        <section className="bg-muted/40 px-6 py-24 lg:px-8">
+        <section id="faq" className="bg-muted/40 px-6 py-24 lg:px-8">
             <div className="mx-auto max-w-3xl">
                 <AnimateIn>
                     <h2 className="mb-12 text-center font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
-                        {t('Frequently Asked Questions')}
+                        {t('Frequently asked questions')}
                     </h2>
                 </AnimateIn>
 

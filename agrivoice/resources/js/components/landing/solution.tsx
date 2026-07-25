@@ -1,4 +1,5 @@
 import { ArrowRightLeft, BarChart3, ShieldCheck, Users } from 'lucide-react';
+import type { CSSProperties } from 'react';
 
 import { LANDING_IMAGES } from '@/components/landing/constants';
 import { AnimateIn } from '@/components/motion/animate-in';
@@ -103,7 +104,7 @@ export default function Solution() {
                                         style={
                                             {
                                                 '--av-delay': `${index * 70}ms`,
-                                            } as React.CSSProperties
+                                            } as CSSProperties
                                         }
                                     >
                                         <Icon className="size-5 text-primary" />

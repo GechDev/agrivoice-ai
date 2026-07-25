@@ -1,22 +1,22 @@
 import {
     Languages,
+    Map,
     MessageCircle,
     MessagesSquare,
-    Navigation,
+    Mic,
     ShoppingBag,
-    Thermometer,
 } from 'lucide-react';
 
 import { AnimateIn } from '@/components/motion/animate-in';
 import { useTranslations } from '@/hooks/use-translations';
 
 const roadmap = [
-    { icon: MessagesSquare, text: 'WhatsApp & Telegram integration' },
-    { icon: MessageCircle, text: 'SMS support for farmers without smartphones' },
-    { icon: Languages, text: 'More Ethiopian languages, including Afaan Oromo' },
-    { icon: Navigation, text: 'Sell now vs. wait recommendations' },
-    { icon: Thermometer, text: 'Live price heat maps across regions' },
-    { icon: ShoppingBag, text: 'A direct farmer-to-buyer marketplace' },
+    { icon: Mic, text: 'Voice queries in Amharic & Afaan Oromoo (parked for demo)' },
+    { icon: MessagesSquare, text: 'WhatsApp & Telegram price bots' },
+    { icon: MessageCircle, text: 'SMS for farmers without smartphones' },
+    { icon: Map, text: 'Regional heat maps & sell-now vs wait guidance' },
+    { icon: ShoppingBag, text: 'Buyer bids folded into market picture' },
+    { icon: Languages, text: 'More crops and markets as the reporter network grows' },
 ];
 
 export default function Vision() {
@@ -27,16 +27,14 @@ export default function Vision() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <AnimateIn className="mx-auto max-w-3xl text-center">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
-                        {t('Our Vision')}
+                        {t('Our vision')}
                     </p>
                     <h2 className="mt-4 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
-                        {t(
-                            'Closing the information gap, one conversation at a time',
-                        )}
+                        {t("Ethiopia's real-time agricultural market intelligence layer")}
                     </h2>
                     <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
                         {t(
-                            "To become Ethiopia's real-time agricultural market intelligence platform — closing the information gap between farmers and traders.",
+                            'Start with teff and coffee in three cities. Compound the crowd-data moat until every farmer — however they connect — can ask “what’s my price?” and get an honest answer.',
                         )}
                     </p>
                 </AnimateIn>
