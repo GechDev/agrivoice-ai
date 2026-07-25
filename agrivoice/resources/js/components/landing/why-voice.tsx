@@ -1,9 +1,9 @@
 import {
+    Database,
     Globe2,
     HandCoins,
-    Mic2,
     ShieldCheck,
-    Sparkles,
+    TrendingUp,
 } from 'lucide-react';
 
 import { AnimateIn } from '@/components/motion/animate-in';
@@ -11,33 +11,34 @@ import { useTranslations } from '@/hooks/use-translations';
 
 const features = [
     {
-        icon: Mic2,
-        title: 'Voice-First',
+        icon: Database,
+        title: 'Data moat',
         description:
-            'Built for farmers, not smartphone experts — no reading or typing required',
+            'Every reported price makes the next aggregate smarter — a flywheel competitors cannot copy overnight.',
     },
     {
         icon: HandCoins,
-        title: 'Hyper-Relevant',
-        description: 'Real prices for real crops in real nearby markets',
+        title: 'Hyper-relevant',
+        description:
+            'Teff and coffee, Adama, Addis Ababa, Jimma — ETB per quintal, everywhere.',
     },
     {
-        icon: Sparkles,
-        title: 'Community-Powered',
+        icon: TrendingUp,
+        title: 'Live & comparable',
         description:
-            'Every farmer who reports a price makes the system smarter for everyone',
+            'Confidence scores, trends, and side-by-side tiles — built for the projector and the field.',
     },
     {
         icon: ShieldCheck,
-        title: 'Honest by Design',
+        title: 'Honest by design',
         description:
-            'AgriVoice never invents numbers — every answer is grounded in real reported data',
+            'Never fabricated prices. Flag outliers. Show report counts so users judge reliability.',
     },
     {
         icon: Globe2,
         title: 'Built for Ethiopia',
         description:
-            'Local languages, local markets, local crops — teff, coffee, maize, wheat, sesame, pulses, and sorghum.',
+            'Amharic, Afaan Oromoo, and English — local markets, local crops, local agents.',
     },
 ];
 
@@ -52,8 +53,13 @@ export default function WhyVoice() {
                         {t('Why AgriVoice')}
                     </p>
                     <h2 className="mt-4 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
-                        {t('Designed for the way farmers actually work')}
+                        {t('Market intelligence that compounds')}
                     </h2>
+                    <p className="mt-5 text-lg text-muted-foreground">
+                        {t(
+                            'Voice access is on the roadmap. Today we prove the engine investors care about: attributable crowd data at scale.',
+                        )}
+                    </p>
                 </AnimateIn>
 
                 <div className="mt-16 grid gap-px overflow-hidden rounded-[1.75rem] border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
@@ -87,11 +93,11 @@ export default function WhyVoice() {
                     >
                         <div>
                             <p className="font-serif text-3xl leading-tight font-semibold">
-                                {t('Speak. Hear. Decide.')}
+                                {t('Report. Aggregate. Decide.')}
                             </p>
                             <p className="mt-3 text-sm leading-relaxed text-primary-foreground/80">
                                 {t(
-                                    'Market intelligence that fits in a spoken sentence.',
+                                    'The loop that turns Ethiopian market gossip into actionable intelligence.',
                                 )}
                             </p>
                         </div>
