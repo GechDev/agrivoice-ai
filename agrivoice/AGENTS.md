@@ -198,6 +198,17 @@ Use Wayfinder to generate TypeScript functions for Laravel routes. Import from `
 - Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
+=== theme rules ===
+
+# Agro Theme (Green)
+
+This app uses a green/agriculture-themed color palette defined in `resources/css/app.css`. All CSS variables use oklch color space with green hues (hue angles ~135-155°). Key characteristics:
+- **Primary**: vibrant green (`oklch(0.6988 0.2141 142.7064)`)
+- **Large border radius**: `--radius: 1.875rem` (30px)
+- **Wide tracking**: `--tracking-normal: 0.075em`
+- **Large shadows**: 30px blur on all shadow utilities
+- When adding new UI, use theme CSS variables (e.g., `bg-background`, `text-foreground`, `border-border`) rather than hardcoded colors.
+
 === inertia-react/core rules ===
 
 # Inertia + React
