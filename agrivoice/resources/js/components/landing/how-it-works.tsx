@@ -1,10 +1,9 @@
 import {
-    Megaphone,
-    Mic,
-    Smartphone,
-    TrendingUp,
-    Wheat,
-    Zap,
+    ClipboardCheck,
+    LayoutDashboard,
+    ListOrdered,
+    LogIn,
+    Radio,
 } from 'lucide-react';
 
 import { AnimateIn } from '@/components/motion/animate-in';
@@ -13,43 +12,38 @@ import { useTranslations } from '@/hooks/use-translations';
 const steps = [
     {
         number: '01',
-        icon: Smartphone,
-        title: 'Speak Your Question',
-        description: 'Ask about any crop, in any supported market, in your own language.',
+        icon: LogIn,
+        title: 'Agent signs in',
+        description:
+            'Named agents authenticate with a PIN — every price is attributed (“entered by Nati”).',
     },
     {
         number: '02',
-        icon: Mic,
-        title: 'AI Understands Your Intent',
-        description: "AgriVoice identifies the crop, the location, and what you're really asking.",
+        icon: ClipboardCheck,
+        title: 'Price is entered',
+        description:
+            'Crop, market, ETB per quintal, reporter type — validated and stored in seconds.',
     },
     {
         number: '03',
-        icon: Wheat,
-        title: 'Real-Time Market Lookup',
+        icon: ListOrdered,
+        title: 'Live list updates',
         description:
-            'We pull the latest reported prices, confidence scores, and nearby market comparisons.',
+            'The report appears newest-first on the public feed. Moderators can flag outliers.',
     },
     {
         number: '04',
-        icon: Zap,
-        title: 'Smart Trend Prediction',
+        icon: LayoutDashboard,
+        title: 'Dashboard recalculates',
         description:
-            'A short-term forecast tells you if prices are likely to rise, fall, or hold steady.',
+            'Confidence %, weighted average, trend arrow, and map marker refresh within seconds.',
     },
     {
         number: '05',
-        icon: TrendingUp,
-        title: 'Natural Voice Response',
+        icon: Radio,
+        title: 'Everyone sees the same truth',
         description:
-            'AgriVoice speaks the answer back — clearly, simply, and honestly.',
-    },
-    {
-        number: '06',
-        icon: Megaphone,
-        title: 'Give Back to the Community',
-        description:
-            'Report your own sale price with a sentence, and help make the data better for every farmer.',
+            'Judges, cooperatives, and farmers watch one live picture — polling every 2–3 seconds.',
     },
 ];
 
@@ -59,24 +53,28 @@ export default function HowItWorks() {
     return (
         <section
             id="how-it-works"
-            className="scroll-mt-20 bg-background py-24 sm:py-32"
+            className="scroll-mt-24 bg-background py-24 sm:py-32"
         >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <AnimateIn className="max-w-2xl">
+                <AnimateIn className="mx-auto max-w-3xl text-center">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
-                        {t('How It Works')}
+                        {t('How it works')}
                     </p>
                     <h2 className="mt-4 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
-                        {t('From question to price in seconds')}
+                        {t('The demo loop that proves the moat')}
                     </h2>
                     <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
                         {t(
-                            'Six simple steps. No forms. No guesswork. Just voice and verified market data.',
+                            'One agent, one price, one live update — the crowd-data flywheel on stage in under ten seconds.',
                         )}
                     </p>
                 </AnimateIn>
 
-                <ol className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                <ol className="relative mt-16 grid gap-8 md:grid-cols-5">
+                    <div
+                        aria-hidden
+                        className="absolute top-12 right-[10%] left-[10%] hidden h-px bg-border md:block"
+                    />
                     {steps.map((step, index) => {
                         const Icon = step.icon;
 
@@ -85,23 +83,18 @@ export default function HowItWorks() {
                                 key={step.number}
                                 as="li"
                                 index={index}
-                                className="relative"
+                                className="relative flex flex-col items-center text-center"
                             >
-                                <div className="flex items-center gap-4">
-                                    <span className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
-                                        <Icon
-                                            className="size-5"
-                                            strokeWidth={1.75}
-                                        />
-                                    </span>
-                                    <span className="font-serif text-3xl font-semibold text-primary/25">
-                                        {step.number}
-                                    </span>
-                                </div>
-                                <h3 className="mt-5 text-lg font-semibold text-foreground">
+                                <span className="relative z-10 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+                                    <Icon className="size-6" strokeWidth={1.75} />
+                                </span>
+                                <span className="mt-4 font-serif text-2xl font-semibold text-primary/30">
+                                    {step.number}
+                                </span>
+                                <h3 className="mt-2 text-base font-semibold text-foreground">
                                     {t(step.title)}
                                 </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                                     {t(step.description)}
                                 </p>
                             </AnimateIn>
