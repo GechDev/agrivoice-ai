@@ -1,4 +1,4 @@
-import { usePage, router } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Languages } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export function LanguageSwitcher() {
     function switchLanguage(code: string) {
         if (code === currentLocale) return;
 
-        router.post(language.switch().url, { locale: code });
+        window.location.href = language.switch.url(code);
     }
 
     const current = languages.find((l) => l.code === currentLocale);
