@@ -1,38 +1,24 @@
 import { Head } from '@inertiajs/react';
 
-import BusinessModel from '@/components/landing/business-model';
 import CTA from '@/components/landing/cta';
-import Demo from '@/components/landing/demo';
-import FAQ from '@/components/landing/faq';
 import Footer from '@/components/landing/footer';
 import Hero from '@/components/landing/hero';
-import HowItWorks from '@/components/landing/how-it-works';
-import Problem from '@/components/landing/problem';
-import ProductShowcase from '@/components/landing/product-showcase';
-import Solution from '@/components/landing/solution';
-import StatsBar from '@/components/landing/stats-bar';
-import Trust from '@/components/landing/trust';
-import Vision from '@/components/landing/vision';
-import WhyVoice from '@/components/landing/why-voice';
+import Practical from '@/components/landing/practical';
+import Services from '@/components/landing/services';
+import Story from '@/components/landing/story';
+import Testimonials from '@/components/landing/testimonials';
 
 export default function Welcome() {
     return (
         <>
-            <Head title="AgriVoice — Live crop market intelligence" />
+            <Head title="AgriVoice" />
 
-            <div className="flex min-h-screen flex-col">
+            <div className="av-marketing min-h-screen overflow-x-hidden antialiased selection:bg-[var(--av-lime)]/40 selection:text-black">
                 <Hero />
-                <StatsBar />
-                <Problem />
-                <Solution />
-                <ProductShowcase />
-                <HowItWorks />
-                <Demo />
-                <WhyVoice />
-                <BusinessModel />
-                <Vision />
-                <Trust />
-                <FAQ />
+                <Services />
+                <Practical />
+                <Story />
+                <Testimonials />
                 <CTA />
                 <Footer />
             </div>

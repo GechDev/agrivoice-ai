@@ -31,7 +31,7 @@
         </style>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=lora:400,500,600,700|plus-jakarta-sans:400,500,600,700|roboto-mono:400,500,700" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=cutive:400|lexend-deca:300,400,500,600,700|lora:400,500,600,700|plus-jakarta-sans:400,500,600,700|roboto-mono:400,500,700" rel="stylesheet" />
 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">

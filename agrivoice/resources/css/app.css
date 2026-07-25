@@ -436,6 +436,68 @@
     transform: translateY(0);
   }
 
+  /*
+   * Marketing landing — inspired by service-led agri platforms
+   * (bold display type, tinted bands, photo-forward sections).
+   * Scoped so the app shell keeps its quieter product theme.
+   */
+  .av-marketing {
+    --av-lime: #9bdd0d;
+    --av-violet: #6f0e4e;
+    --av-orange: #ef6c00;
+    --av-orange-soft: #fff3e0;
+    --av-orange-wash: #ff99002b;
+    --av-teal: #00897b;
+    --av-mint: #57bc90;
+    --av-sky: #d1eaed;
+    --av-ink: #141414;
+    --av-ink-soft: #000000c9;
+    --font-marketing: "Lexend Deca", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
+    --font-display: Cutive, Lora, ui-serif, Georgia, serif;
+    color: var(--av-ink);
+    font-family: var(--font-marketing);
+    background: #fafafa;
+  }
+
+  .av-marketing h1,
+  .av-marketing h2,
+  .av-marketing h3 {
+    font-family: var(--font-marketing);
+    letter-spacing: -0.02em;
+  }
+
+  .av-marketing .av-display {
+    font-family: var(--font-display);
+  }
+
+  .av-marketing-shell {
+    margin-inline: clamp(0.75rem, 2vw, 2rem);
+  }
+
+  .av-marketing-band {
+    border-bottom-left-radius: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .av-marketing-band-right {
+    border-bottom-right-radius: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .av-marketing-rule {
+    border-left: 8px solid var(--av-ink-soft);
+    padding-left: 1rem;
+  }
+
+  .dark .av-marketing {
+    --av-ink: #f4f7f5;
+    --av-ink-soft: #ffffffd0;
+    background: #101512;
+    color: var(--av-ink);
+  }
+
+  .dark .av-marketing-rule {
+    border-left-color: color-mix(in oklab, white 70%, transparent);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-agrivoice-breathe,
     .animate-agrivoice-wave,

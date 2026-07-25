@@ -1,115 +1,145 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Play, TrendingUp } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
-import { LANDING_IMAGES, LANDING_VIDEOS } from '@/components/landing/constants';
-import LandingNav from '@/components/landing/nav';
+import AppLogo from '@/components/app-logo';
+import { AppearanceToggle } from '@/components/appearance-toggle';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/use-translations';
-import { dashboard, reportPrice } from '@/routes';
+import { dashboard, home, reportPrice } from '@/routes';
+import { login as cooperativeLogin } from '@/routes/cooperative';
+import { login as portalLogin } from '@/routes/portal';
 
 export default function Hero() {
     const t = useTranslations();
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <section className="relative isolate min-h-[100svh] overflow-hidden bg-foreground text-background">
-            <img
-                src={LANDING_IMAGES.hero}
-                alt=""
-                aria-hidden
-                className="absolute inset-0 size-full object-cover"
-                fetchPriority="high"
-            />
-            <video
-                aria-hidden
-                autoPlay
-                loop
-                muted
-                playsInline
-                poster={LANDING_IMAGES.hero}
-                className="absolute inset-0 size-full object-cover opacity-40 mix-blend-overlay"
-            >
-                <source src={LANDING_VIDEOS.hero} type="video/mp4" />
-            </video>
-            <div
-                aria-hidden
-                className="landing-hero-gradient absolute inset-0"
-            />
-            <div
-                aria-hidden
-                className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_80%_30%,_oklch(0.72_0.13_145/0.25),_transparent_55%)]"
-            />
+        <section className="av-marketing-shell pt-4 sm:pt-5">
+            <header className="relative z-20 mx-auto flex w-full max-w-[1208px] items-center justify-between gap-3 px-2 pb-4 sm:px-4">
+                <Link href={home()} className="inline-flex items-center">
+                    <AppLogo size="md" nameClassName="font-[family-name:var(--font-marketing)] text-lg" />
+                </Link>
 
-            <LandingNav variant="overlay" />
+                <nav className="hidden items-center gap-1 md:flex">
+                    <a
+                        href="#services"
+                        className="rounded-full px-3 py-2 text-sm font-medium text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+                    >
+                        {t('Services')}
+                    </a>
+                    <a
+                        href="#markets"
+                        className="rounded-full px-3 py-2 text-sm font-medium text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+                    >
+                        {t('Markets')}
+                    </a>
+                    <a
+                        href="#story"
+                        className="rounded-full px-3 py-2 text-sm font-medium text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+                    >
+                        {t('About')}
+                    </a>
+                    <Link
+                        href={cooperativeLogin()}
+                        className="rounded-full px-3 py-2 text-sm font-medium text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+                    >
+                        {t('Cooperative login')}
+                    </Link>
+                    <AppearanceToggle />
+                    <LanguageSwitcher />
+                    <Button
+                        asChild
+                        className="ml-1 h-10 rounded-full bg-[var(--av-lime)] px-5 font-semibold text-black hover:bg-[color-mix(in_oklab,var(--av-lime)_88%,black)]"
+                    >
+                        <Link href={dashboard()}>{t('View live prices')}</Link>
+                    </Button>
+                </nav>
 
-            <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col justify-center px-4 pt-28 pb-20 sm:px-6 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-8 lg:pt-24">
-                <div className="max-w-2xl animate-agrivoice-rise">
-                    <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white/90 uppercase backdrop-blur-sm">
-                        <TrendingUp className="size-3.5 text-primary" />
-                        {t('Real-time crop market intelligence')}
-                    </p>
-                    <h1 className="mt-6 font-serif text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.05] font-semibold tracking-[-0.02em]">
-                        {t('Turn market gossip into a live price picture farmers can trust.')}
-                    </h1>
-                    <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/72">
-                        {t(
-                            'AgriVoice aggregates crowd-reported teff and coffee prices across Adama, Addis Ababa, and Jimma — with confidence scores, trends, and agent attribution. The moat is the data loop, not the AI.',
-                        )}
-                    </p>
-                    <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <Button
-                            asChild
-                            size="lg"
-                            className="h-12 rounded-full px-8 text-base font-semibold"
-                        >
-                            <Link href={dashboard()}>
-                                {t('View live dashboard')}
-                                <ArrowRight className="size-4" />
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="outline"
-                            size="lg"
-                            className="h-12 rounded-full border-white/25 bg-white/5 px-6 text-base font-medium text-white hover:bg-white/10 hover:text-white"
-                        >
-                            <a href="#demo">
-                                <Play className="size-4" />
-                                {t('Watch the loop')}
-                            </a>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="ghost"
-                            size="lg"
-                            className="h-12 rounded-full px-6 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white"
-                        >
-                            <Link href={reportPrice()}>
-                                {t('Report a price')}
-                            </Link>
-                        </Button>
+                <div className="flex items-center gap-1 md:hidden">
+                    <AppearanceToggle />
+                    <LanguageSwitcher />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full"
+                        aria-expanded={menuOpen}
+                        aria-label={menuOpen ? t('Close menu') : t('Open menu')}
+                        onClick={() => setMenuOpen((open) => !open)}
+                    >
+                        {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+                    </Button>
+                </div>
+            </header>
+
+            {menuOpen ? (
+                <div className="relative z-20 mb-3 rounded-2xl bg-white/90 px-3 py-3 shadow-sm backdrop-blur dark:bg-black/40 md:hidden">
+                    <div className="flex flex-col gap-1">
+                        <a href="#services" className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('Services')}
+                        </a>
+                        <a href="#markets" className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('Markets')}
+                        </a>
+                        <a href="#story" className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('About')}
+                        </a>
+                        <Link href={portalLogin()} className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('Agent portal')}
+                        </Link>
+                        <Link href={cooperativeLogin()} className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('Cooperative login')}
+                        </Link>
+                        <Link href={reportPrice()} className="rounded-xl px-3 py-2.5 text-sm font-medium" onClick={() => setMenuOpen(false)}>
+                            {t('Report a price')}
+                        </Link>
                     </div>
                 </div>
+            ) : null}
 
-                <div className="relative mt-14 hidden lg:mt-0 lg:block">
-                    <div className="landing-glass relative overflow-hidden rounded-3xl p-6 shadow-2xl">
-                        <img
-                            src={LANDING_IMAGES.market}
-                            alt={t('Ethiopian grain market')}
-                            className="aspect-[4/3] w-full rounded-2xl object-cover"
-                        />
-                        <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-background/95 p-4 text-foreground shadow-xl backdrop-blur-md">
-                            <p className="text-xs font-semibold tracking-wide text-primary uppercase">
-                                {t('The money shot')}
-                            </p>
-                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                {t(
-                                    'An agent enters a price → it hits the live list → the dashboard tile updates in front of everyone.',
-                                )}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="absolute -top-4 -right-4 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg">
-                        {t('ETB / quintal')}
+            <div className="relative isolate overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+                <img
+                    src="/images/landing/hero-field.jpg"
+                    alt=""
+                    className="absolute inset-0 size-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,_color-mix(in_oklab,var(--av-lime)_35%,transparent),_transparent_45%)]" />
+
+                <div className="relative mx-auto flex min-h-[28rem] w-full max-w-[1208px] flex-col justify-end px-5 pb-10 pt-28 sm:min-h-[34rem] sm:px-8 sm:pb-14 lg:min-h-[38rem]">
+                    <p className="av-display text-sm font-normal tracking-[0.18em] text-[var(--av-lime)] uppercase sm:text-base">
+                        {t('AgriVoice')}
+                    </p>
+                    <h1 className="mt-3 max-w-3xl text-[clamp(2.4rem,7vw,4.75rem)] leading-[1.02] font-semibold text-white">
+                        {t('Your voice guide to')}
+                        <br />
+                        <span className="text-[var(--av-lime)]">
+                            {t('live market prices')}
+                        </span>
+                    </h1>
+                    <p className="av-marketing-rule mt-6 max-w-lg text-base leading-relaxed text-white/85 sm:text-lg">
+                        {t(
+                            'Expert crop prices and market comparisons straight to your phone — in Amharic, Afaan Oromoo, or English.',
+                        )}
+                    </p>
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <Button
+                            asChild
+                            size="lg"
+                            className="h-12 rounded-full bg-[var(--av-lime)] px-8 text-base font-semibold text-black hover:bg-[color-mix(in_oklab,var(--av-lime)_88%,black)]"
+                        >
+                            <Link href={dashboard()}>{t('View live prices')}</Link>
+                        </Button>
+                        <Button
+                            asChild
+                            size="lg"
+                            variant="outline"
+                            className="h-12 rounded-full border-white/40 bg-white/10 px-7 text-base font-semibold text-white backdrop-blur hover:bg-white/20 hover:text-white"
+                        >
+                            <Link href={reportPrice()}>{t('Report a price')}</Link>
+                        </Button>
                     </div>
                 </div>
             </div>
