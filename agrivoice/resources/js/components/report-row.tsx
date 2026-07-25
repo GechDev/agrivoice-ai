@@ -81,57 +81,66 @@ export function ReportRow({ report }: ReportRowProps) {
     return (
         <li
             className={cn(
-                'grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-md transition-all duration-500 sm:grid-cols-[7rem_9rem_7rem_6rem_1fr_auto_auto]',
+                'flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-md transition-all duration-500',
                 report.isFlagged && 'opacity-55',
                 flash && 'border-primary bg-accent ring-2 ring-primary/30',
             )}
         >
-            <div className="font-semibold text-card-foreground">
-                <span className={cn(report.isFlagged && 'line-through')}>
-                    {t(cropLabel(report.crop))}
-                </span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-                {marketLabel(report.market)}
-            </div>
-            <div
-                className={cn(
-                    'font-semibold tabular-nums text-card-foreground',
-                    report.isFlagged && 'line-through',
-                )}
-            >
-                {formatPrice(report.price)}{' '}
-                <span className="text-xs font-medium text-muted-foreground">
-                    ETB/q
-                </span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-                {formatWhen(report.reportedAt)}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-                <Badge variant={report.source === 'official' ? 'default' : 'secondary'}>
-                    {report.source}
-                </Badge>
-                <span className="text-muted-foreground">
-                    by <span className="font-medium text-foreground">{report.agentName}</span>
-                </span>
-            </div>
-            <div>
-                {report.isFlagged ? (
-                    <Badge variant="destructive">Flagged</Badge>
-                ) : (
-                    <span className="sr-only sm:not-sr-only sm:text-xs sm:text-transparent">
-                        —
+            <div className="grid min-w-0 flex-1 grid-cols-2 items-center gap-x-3 gap-y-2 sm:grid-cols-[6.5rem_8.5rem_7rem_5.5rem_minmax(0,1fr)_5.5rem]">
+                <div className="font-semibold text-card-foreground">
+                    <span className={cn(report.isFlagged && 'line-through')}>
+                        {t(cropLabel(report.crop))}
                     </span>
-                )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                    {marketLabel(report.market)}
+                </div>
+                <div
+                    className={cn(
+                        'font-semibold tabular-nums text-card-foreground',
+                        report.isFlagged && 'line-through',
+                    )}
+                >
+                    {formatPrice(report.price)}{' '}
+                    <span className="text-xs font-medium text-muted-foreground">
+                        ETB/q
+                    </span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                    {formatWhen(report.reportedAt)}
+                </div>
+                <div className="col-span-2 flex flex-wrap items-center gap-2 text-sm sm:col-span-1">
+                    <Badge
+                        variant={
+                            report.source === 'official'
+                                ? 'default'
+                                : 'secondary'
+                        }
+                    >
+                        {report.source}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                        by{' '}
+                        <span className="font-medium text-foreground">
+                            {report.agentName}
+                        </span>
+                    </span>
+                </div>
+                <div className="hidden sm:flex sm:justify-end">
+                    {report.isFlagged ? (
+                        <Badge variant="destructive">Flagged</Badge>
+                    ) : null}
+                </div>
             </div>
-            <div className="justify-self-end">
+
+            <div className="w-[6.75rem] shrink-0 self-center">
                 <Button
                     type="button"
                     size="sm"
                     variant={report.isFlagged ? 'secondary' : 'outline'}
                     disabled={report.isFlagged || flagging}
                     onClick={onFlag}
+                    className="w-full justify-center"
                     aria-label={
                         report.isFlagged
                             ? 'Already flagged'
