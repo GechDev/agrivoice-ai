@@ -33,5 +33,8 @@ class DatabaseSeeder extends Seeder
             ReportSeeder::class,
             CooperativeDemoSeeder::class,
         ]);
+
+        // Optional historical WFP import (not run by default — large, slow):
+        // php artisan db:seed --class=WfpFoodPricesSeeder
     }
 }
