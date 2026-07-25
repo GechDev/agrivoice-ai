@@ -21,3 +21,15 @@ export interface MarketMarker {
     latitude: number;
     longitude: number;
 }
+
+export interface ReportRowData {
+    id: number;
+    crop: Crop;
+    market: MarketSlug;
+    price: number;
+    reportedAt: string;
+    source: ReporterType;
+    agentName: string;
+    isFlagged: boolean;
+    createdAt: string | null;
+}
