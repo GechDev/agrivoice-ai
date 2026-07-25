@@ -6,36 +6,16 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from '@/hooks/use-translations';
+import { formatCurrency } from '@/lib/agrivoice';
 import type {
     CooperativePriceRow,
     PriceTrend,
 } from '@/types/cooperative-prices';
 
-const priceFormatter = new Intl.NumberFormat('en-ET', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 2,
-});
-
 const dateFormatter = new Intl.DateTimeFormat('en-ET', {
     dateStyle: 'medium',
 });
-
-function formatPrice(price: number | null): string {
-    return price === null ? 'No data' : priceFormatter.format(price);
-}
-
-function formatPercentage(percentage: number | null): string {
-    if (percentage === null) {
-        return 'N/A';
-    }
-
-    return `${percentage > 0 ? '+' : ''}${percentage.toFixed(1)}%`;
-}
-
-function formatDate(date: string | null): string {
-    return date === null ? 'No reports' : dateFormatter.format(new Date(date));
-}
 
 const trendDetails: Record<
     PriceTrend,
@@ -68,6 +48,7 @@ const trendDetails: Record<
 };
 
 function TrendBadge({ row }: { row: CooperativePriceRow }) {
+    const t = useTranslations();
     const detail = trendDetails[row.trend];
     const Icon = detail.icon;
     const percentage =
@@ -78,23 +59,31 @@ function TrendBadge({ row }: { row: CooperativePriceRow }) {
     return (
         <Badge variant="outline" className={detail.className}>
             <Icon aria-hidden="true" />
-            {detail.label}
+            {t(detail.label)}
             {percentage}
         </Badge>
     );
 }
 
 function RegionalAverage({ row }: { row: CooperativePriceRow }) {
+    const t = useTranslations();
+
     return (
         <div className="flex flex-col gap-0.5">
             <span className="font-medium">
-                {formatPrice(row.regionalAverage)}
+                {row.regionalAverage === null
+                    ? t('No data')
+                    : formatCurrency(row.regionalAverage)}
             </span>
             {row.regionalAverage !== null && (
                 <span className="text-xs text-muted-foreground">
-                    {row.regionalMarketCount}{' '}
-                    {row.regionalMarketCount === 1 ? 'market' : 'markets'}{' '}
-                    reporting
+                    {row.regionalMarketCount === 1
+                        ? t(':count market reporting', {
+                              count: String(row.regionalMarketCount),
+                          })
+                        : t(':count markets reporting', {
+                              count: String(row.regionalMarketCount),
+                          })}
                 </span>
             )}
         </div>
@@ -102,16 +91,33 @@ function RegionalAverage({ row }: { row: CooperativePriceRow }) {
 }
 
 export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
+    const t = useTranslations();
+
+    const formatPrice = (price: number | null): string =>
+        price === null ? t('No data') : formatCurrency(price);
+
+    const formatPercentage = (percentage: number | null): string => {
+        if (percentage === null) {
+            return t('N/A');
+        }
+
+        return `${percentage > 0 ? '+' : ''}${percentage.toFixed(1)}%`;
+    };
+
+    const formatDate = (date: string | null): string =>
+        date === null ? t('No reports') : dateFormatter.format(new Date(date));
+
     if (rows.length === 0) {
         return (
             <Card>
                 <CardContent className="py-10 text-center">
                     <p className="font-medium">
-                        No tracked crops or regional markets
+                        {t('No tracked crops or regional markets')}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Add tracked crops or a matching regional market in
-                        settings to create this summary.
+                        {t(
+                            'Add tracked crops or a matching regional market in settings to create this summary.',
+                        )}
                     </p>
                 </CardContent>
             </Card>
@@ -126,25 +132,25 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                         <thead className="border-b bg-muted/60 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                             <tr>
                                 <th scope="col" className="px-5 py-4">
-                                    Crop
+                                    {t('Crop')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    Market
+                                    {t('Market')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    Cooperative price
+                                    {t('Cooperative price')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    Regional average
+                                    {t('Regional average')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    Vs regional
+                                    {t('Vs regional')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    Weekly trend
+                                    {t('Weekly trend')}
                                 </th>
                                 <th scope="col" className="px-5 py-4">
-                                    As of
+                                    {t('As of')}
                                 </th>
                             </tr>
                         </thead>
@@ -158,7 +164,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                                         scope="row"
                                         className="px-5 py-4 font-semibold"
                                     >
-                                        {row.cropLabel}
+                                        {t(row.cropLabel)}
                                     </th>
                                     <td className="px-5 py-4">{row.market}</td>
                                     <td className="px-5 py-4 font-semibold">
@@ -190,7 +196,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                     <Card key={`${row.crop}-${row.market}`} className="gap-4">
                         <CardHeader className="flex-row items-start justify-between gap-3">
                             <div className="flex flex-col gap-1">
-                                <CardTitle>{row.cropLabel}</CardTitle>
+                                <CardTitle>{t(row.cropLabel)}</CardTitle>
                                 <span className="text-sm text-muted-foreground">
                                     {row.market}
                                 </span>
@@ -201,7 +207,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                                 <div className="flex flex-col gap-1">
                                     <dt className="text-muted-foreground">
-                                        Cooperative
+                                        {t('Cooperative')}
                                     </dt>
                                     <dd className="font-semibold">
                                         {formatPrice(row.currentPrice)}
@@ -209,7 +215,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <dt className="text-muted-foreground">
-                                        Regional avg
+                                        {t('Regional avg')}
                                     </dt>
                                     <dd>
                                         <RegionalAverage row={row} />
@@ -217,7 +223,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <dt className="text-muted-foreground">
-                                        Vs regional
+                                        {t('Vs regional')}
                                     </dt>
                                     <dd>
                                         {formatPercentage(
@@ -227,7 +233,7 @@ export function PriceTable({ rows }: { rows: CooperativePriceRow[] }) {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <dt className="text-muted-foreground">
-                                        As of
+                                        {t('As of')}
                                     </dt>
                                     <dd>{formatDate(row.asOf)}</dd>
                                 </div>

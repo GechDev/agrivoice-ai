@@ -8,6 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from '@/hooks/use-translations';
 import type { ReportFilterOption } from '@/types/cooperative-reports';
 
 type ReportsFiltersProps = {
@@ -43,6 +44,7 @@ export function ReportsFilters({
     onToChange,
     onReset,
 }: ReportsFiltersProps) {
+    const t = useTranslations();
     const hasActiveFilters =
         crop !== '' ||
         market !== '' ||
@@ -54,7 +56,7 @@ export function ReportsFilters({
         <div className="flex flex-col gap-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="reports-crop">Crop</Label>
+                    <Label htmlFor="reports-crop">{t('Crop')}</Label>
                     <Select
                         value={crop || 'all'}
                         onValueChange={(value) =>
@@ -64,18 +66,18 @@ export function ReportsFilters({
                         <SelectTrigger
                             id="reports-crop"
                             className="w-full"
-                            aria-label="Filter by crop"
+                            aria-label={t('Filter by crop')}
                         >
-                            <SelectValue placeholder="All crops" />
+                            <SelectValue placeholder={t('All crops')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All crops</SelectItem>
+                            <SelectItem value="all">{t('All crops')}</SelectItem>
                             {cropOptions.map((option) => (
                                 <SelectItem
                                     key={option.value}
                                     value={option.value}
                                 >
-                                    {option.label}
+                                    {t(option.label)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -83,7 +85,7 @@ export function ReportsFilters({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="reports-market">Market</Label>
+                    <Label htmlFor="reports-market">{t('Market')}</Label>
                     <Select
                         value={market || 'all'}
                         onValueChange={(value) =>
@@ -93,18 +95,20 @@ export function ReportsFilters({
                         <SelectTrigger
                             id="reports-market"
                             className="w-full"
-                            aria-label="Filter by market"
+                            aria-label={t('Filter by market')}
                         >
-                            <SelectValue placeholder="All markets" />
+                            <SelectValue placeholder={t('All markets')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All markets</SelectItem>
+                            <SelectItem value="all">
+                                {t('All markets')}
+                            </SelectItem>
                             {marketOptions.map((option) => (
                                 <SelectItem
                                     key={option.value}
                                     value={option.value}
                                 >
-                                    {option.label}
+                                    {t(option.label)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -112,7 +116,7 @@ export function ReportsFilters({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="reports-status">Status</Label>
+                    <Label htmlFor="reports-status">{t('Status')}</Label>
                     <Select
                         value={status || 'all'}
                         onValueChange={(value) =>
@@ -122,18 +126,20 @@ export function ReportsFilters({
                         <SelectTrigger
                             id="reports-status"
                             className="w-full"
-                            aria-label="Filter by status"
+                            aria-label={t('Filter by status')}
                         >
-                            <SelectValue placeholder="All statuses" />
+                            <SelectValue placeholder={t('All statuses')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All statuses</SelectItem>
+                            <SelectItem value="all">
+                                {t('All statuses')}
+                            </SelectItem>
                             {statusOptions.map((option) => (
                                 <SelectItem
                                     key={option.value}
                                     value={option.value}
                                 >
-                                    {option.label}
+                                    {t(option.label)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -141,24 +147,24 @@ export function ReportsFilters({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="reports-from">From date</Label>
+                    <Label htmlFor="reports-from">{t('From date')}</Label>
                     <Input
                         id="reports-from"
                         type="date"
                         value={from}
                         onChange={(event) => onFromChange(event.target.value)}
-                        aria-label="Filter from date"
+                        aria-label={t('Filter from date')}
                     />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="reports-to">To date</Label>
+                    <Label htmlFor="reports-to">{t('To date')}</Label>
                     <Input
                         id="reports-to"
                         type="date"
                         value={to}
                         onChange={(event) => onToChange(event.target.value)}
-                        aria-label="Filter to date"
+                        aria-label={t('Filter to date')}
                     />
                 </div>
 
@@ -168,10 +174,10 @@ export function ReportsFilters({
                         variant="outline"
                         onClick={onReset}
                         disabled={!hasActiveFilters}
-                        aria-label="Reset report filters"
+                        aria-label={t('Reset report filters')}
                         className="w-full"
                     >
-                        Reset filters
+                        {t('Reset filters')}
                     </Button>
                 </div>
             </div>

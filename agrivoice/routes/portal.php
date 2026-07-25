@@ -15,5 +15,7 @@ Route::middleware('agent')->group(function (): void {
     Route::get('portal', [ReportController::class, 'create'])->name('portal.entry');
     Route::post('portal/logout', [AgentAuthController::class, 'destroy'])->name('portal.logout');
 
-    Route::post('reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::post('reports', [ReportController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('reports.store');
 });

@@ -1,11 +1,10 @@
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { StatusBadge, type StatusTone } from '@/components/status-badge';
+import { useTranslations } from '@/hooks/use-translations';
 
-const statusStyles: Record<string, string> = {
-    active: 'border-emerald-600/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-    invited:
-        'border-amber-600/30 bg-amber-500/15 text-amber-800 dark:text-amber-300',
-    removed: 'border-muted-foreground/30 bg-muted text-muted-foreground',
+const statusTones: Record<string, StatusTone> = {
+    active: 'success',
+    invited: 'warning',
+    removed: 'neutral',
 };
 
 const statusLabels: Record<string, string> = {
@@ -23,15 +22,16 @@ export function MemberStatusBadge({
     status,
     className,
 }: MemberStatusBadgeProps) {
+    const t = useTranslations();
     const label = statusLabels[status] ?? status;
 
     return (
-        <Badge
-            variant="outline"
-            className={cn(statusStyles[status] ?? '', className)}
-            aria-label={`Status: ${label}`}
+        <StatusBadge
+            tone={statusTones[status] ?? 'neutral'}
+            className={className}
+            aria-label={t('Status: :status', { status: t(label) })}
         >
-            {label}
-        </Badge>
+            {t(label)}
+        </StatusBadge>
     );
 }

@@ -12,7 +12,10 @@ import {
     type StatusActionTarget,
     UpdateReportStatusDialog,
 } from '@/components/cooperative/reports/update-report-status-dialog';
+import { PageSection } from '@/components/motion/page-section';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/hooks/use-translations';
 import { dashboard as cooperativeDashboard } from '@/routes/cooperative';
 import type {
     CooperativeReportFilters,
@@ -68,6 +71,7 @@ export default function ReportsIndex({
     marketOptions,
     statusOptions,
 }: ReportsIndexProps) {
+    const t = useTranslations();
     const [crop, setCrop] = useState(filters.crop ?? '');
     const [market, setMarket] = useState(filters.market ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
@@ -83,11 +87,11 @@ export default function ReportsIndex({
     setLayoutProps({
         breadcrumbs: [
             {
-                title: 'Cooperative dashboard',
+                title: t('Cooperative dashboard'),
                 href: cooperativeDashboard(),
             },
             {
-                title: 'Reports',
+                title: t('Reports'),
                 href: index(),
             },
         ],
@@ -159,98 +163,107 @@ export default function ReportsIndex({
 
     return (
         <>
-            <Head title="Cooperative reports" />
+            <Head title={t('Cooperative reports')} />
             <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6">
-                <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                            Reports
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Review member price reports, verify quality, and
-                            export filtered results.
-                        </p>
-                    </div>
-                    <Button variant="outline" asChild>
-                        <a
-                            href={exportMethod.url({ query: activeQuery })}
-                            aria-label="Export filtered reports as CSV"
-                        >
-                            <Download aria-hidden="true" />
-                            Export CSV
-                        </a>
-                    </Button>
-                </header>
+                <PageSection>
+                    <PageHeader
+                        title={t('Reports')}
+                        description={t(
+                            'Review member price reports, verify quality, and export filtered results.',
+                        )}
+                        actions={
+                            <Button variant="outline" asChild>
+                                <a
+                                    href={exportMethod.url({
+                                        query: activeQuery,
+                                    })}
+                                    aria-label={t(
+                                        'Export filtered reports as CSV',
+                                    )}
+                                >
+                                    <Download aria-hidden="true" />
+                                    {t('Export CSV')}
+                                </a>
+                            </Button>
+                        }
+                    />
+                </PageSection>
 
-                <ReportsFilters
-                    crop={crop}
-                    market={market}
-                    status={status}
-                    from={from}
-                    to={to}
-                    cropOptions={cropOptions}
-                    marketOptions={marketOptions}
-                    statusOptions={statusOptions}
-                    onCropChange={(value) => {
-                        setCrop(value);
-                        navigateWithFilters(value, market, status, from, to);
-                    }}
-                    onMarketChange={(value) => {
-                        setMarket(value);
-                        navigateWithFilters(crop, value, status, from, to);
-                    }}
-                    onStatusChange={(value) => {
-                        setStatus(value);
-                        navigateWithFilters(crop, market, value, from, to);
-                    }}
-                    onFromChange={(value) => {
-                        setFrom(value);
-                        navigateWithFilters(crop, market, status, value, to);
-                    }}
-                    onToChange={(value) => {
-                        setTo(value);
-                        navigateWithFilters(crop, market, status, from, value);
-                    }}
-                    onReset={() => {
-                        setCrop('');
-                        setMarket('');
-                        setStatus('');
-                        setFrom('');
-                        setTo('');
-                        navigateWithFilters('', '', '', '', '');
-                    }}
-                />
+                <PageSection delay={1}>
+                    <ReportsFilters
+                        crop={crop}
+                        market={market}
+                        status={status}
+                        from={from}
+                        to={to}
+                        cropOptions={cropOptions}
+                        marketOptions={marketOptions}
+                        statusOptions={statusOptions}
+                        onCropChange={(value) => {
+                            setCrop(value);
+                            navigateWithFilters(value, market, status, from, to);
+                        }}
+                        onMarketChange={(value) => {
+                            setMarket(value);
+                            navigateWithFilters(crop, value, status, from, to);
+                        }}
+                        onStatusChange={(value) => {
+                            setStatus(value);
+                            navigateWithFilters(crop, market, value, from, to);
+                        }}
+                        onFromChange={(value) => {
+                            setFrom(value);
+                            navigateWithFilters(crop, market, status, value, to);
+                        }}
+                        onToChange={(value) => {
+                            setTo(value);
+                            navigateWithFilters(crop, market, status, from, value);
+                        }}
+                        onReset={() => {
+                            setCrop('');
+                            setMarket('');
+                            setStatus('');
+                            setFrom('');
+                            setTo('');
+                            navigateWithFilters('', '', '', '', '');
+                        }}
+                    />
+                </PageSection>
 
-                <ReportsTable
-                    reports={reports.data}
-                    loading={filtering}
-                    onDispute={(report) => openStatusDialog(report, 'disputed')}
-                    onReject={(report) => openStatusDialog(report, 'rejected')}
-                />
+                <PageSection delay={2}>
+                    <ReportsTable
+                        reports={reports.data}
+                        loading={filtering}
+                        onDispute={(report) => openStatusDialog(report, 'disputed')}
+                        onReject={(report) => openStatusDialog(report, 'rejected')}
+                    />
+                </PageSection>
 
-                <ReportsPagination
-                    reports={reports}
-                    onPrevious={() =>
-                        navigateWithFilters(
-                            crop,
-                            market,
-                            status,
-                            from,
-                            to,
-                            Math.max(1, reports.current_page - 1),
-                        )
-                    }
-                    onNext={() =>
-                        navigateWithFilters(
-                            crop,
-                            market,
-                            status,
-                            from,
-                            to,
-                            reports.current_page + 1,
-                        )
-                    }
-                />
+                <PageSection delay={3}>
+                    <ReportsPagination
+                        reports={reports}
+                        onPrevious={() =>
+                            navigateWithFilters(
+                                crop,
+                                market,
+                                status,
+                                from,
+                                to,
+                                Math.max(1, reports.current_page - 1),
+                            )
+                        }
+                        onNext={() =>
+                            navigateWithFilters(
+                                crop,
+                                market,
+                                status,
+                                from,
+                                to,
+                                reports.current_page + 1,
+                            )
+                        }
+                    />
+                </PageSection>
             </div>
 
             <UpdateReportStatusDialog

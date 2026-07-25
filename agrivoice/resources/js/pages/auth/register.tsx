@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/hooks/use-translations';
 import { login } from '@/routes';
+import { register as cooperativeRegister } from '@/routes/cooperative';
 import { store } from '@/routes/register';
 
 type Props = {
@@ -109,11 +110,19 @@ export default function Register({ passwordRules }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            {t('Already have an account?')}{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                {t('Log in')}
-                            </TextLink>
+                        <div className="space-y-3 text-center text-sm text-muted-foreground">
+                            <p>
+                                {t('Already have an account?')}{' '}
+                                <TextLink href={login()} tabIndex={6}>
+                                    {t('Log in')}
+                                </TextLink>
+                            </p>
+                            <p className="border-t border-border pt-3">
+                                {t('Cooperative admin?')}{' '}
+                                <TextLink href={cooperativeRegister()} tabIndex={7}>
+                                    {t('Cooperative login / sign up')}
+                                </TextLink>
+                            </p>
                         </div>
                     </>
                 )}

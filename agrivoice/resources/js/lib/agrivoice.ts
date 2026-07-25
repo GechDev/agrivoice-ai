@@ -89,13 +89,24 @@ export function reporterTypeDescription(reporterType: ReporterType): string {
  * prices are whole numbers (no cents), so maximumFractionDigits is 0.
  * Example: 8600 → "8,600"
  */
-const priceFormatter = new Intl.NumberFormat('en-US', {
+const priceFormatter = new Intl.NumberFormat('en-ET', {
+    maximumFractionDigits: 0,
+});
+
+const currencyFormatter = new Intl.NumberFormat('en-ET', {
+    style: 'currency',
+    currency: 'ETB',
     maximumFractionDigits: 0,
 });
 
 /** Format a price for display. Unit (ETB/quintal) is rendered separately. */
 export function formatPrice(price: number): string {
     return priceFormatter.format(price);
+}
+
+/** Format a price with the ETB currency symbol (e.g. "ETB 8,600"). */
+export function formatCurrency(price: number): string {
+    return currencyFormatter.format(price);
 }
 
 /**
@@ -156,9 +167,13 @@ export function formatObservedOn(
  * Used in the live report list and dashboard "last updated" indicators.
  */
 export function formatTimeAgo(
-    isoDate: string,
+    isoDate: string | null,
     t: TranslateFn = (key) => key,
 ): string {
+    if (isoDate === null) {
+        return t('Just now');
+    }
+
     const elapsedSeconds = Math.max(
         0,
         (Date.now() - new Date(isoDate).getTime()) / 1000,

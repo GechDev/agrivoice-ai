@@ -2,6 +2,7 @@ import { Eye, UserMinus } from 'lucide-react';
 import { MemberStatusBadge } from '@/components/cooperative/member-status-badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/hooks/use-translations';
 import type { MemberRow } from '@/types/cooperative-members';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -62,32 +63,33 @@ export function MembersTable({
     onView,
     onRemove,
 }: MembersTableProps) {
+    const t = useTranslations();
+
     return (
         <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
             <table className="w-full min-w-[44rem] text-left text-sm">
                 <thead className="border-b bg-muted/40">
                     <tr>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Member
+                            {t('Member')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Status
+                            {t('Status')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Joined
+                            {t('Joined')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Last activity
+                            {t('Last activity')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Queries
+                            {t('Queries')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Reports
+                            {t('Reports')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            <span className="sr-only">Actions</span>
-                            Actions
+                            {t('Actions')}
                         </th>
                     </tr>
                 </thead>
@@ -101,11 +103,12 @@ export function MembersTable({
                                 className="px-4 py-16 text-center text-muted-foreground"
                             >
                                 <p className="font-medium text-foreground">
-                                    No members found
+                                    {t('No members found')}
                                 </p>
                                 <p className="mt-1 text-sm">
-                                    Invite members or adjust your search and
-                                    status filters.
+                                    {t(
+                                        'Invite members or adjust your search and status filters.',
+                                    )}
                                 </p>
                             </td>
                         </tr>
@@ -156,10 +159,13 @@ export function MembersTable({
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => onView(member)}
-                                                aria-label={`View details for ${member.name}`}
+                                                aria-label={t(
+                                                    'View details for :name',
+                                                    { name: member.name },
+                                                )}
                                             >
                                                 <Eye aria-hidden="true" />
-                                                View
+                                                {t('View')}
                                             </Button>
                                             <Button
                                                 type="button"
@@ -169,12 +175,19 @@ export function MembersTable({
                                                 onClick={() => onRemove(member)}
                                                 aria-label={
                                                     isRemoved
-                                                        ? `${member.name} is already removed`
-                                                        : `Remove ${member.name}`
+                                                        ? t(
+                                                              ':name is already removed',
+                                                              {
+                                                                  name: member.name,
+                                                              },
+                                                          )
+                                                        : t('Remove :name', {
+                                                              name: member.name,
+                                                          })
                                                 }
                                             >
                                                 <UserMinus aria-hidden="true" />
-                                                Remove
+                                                {t('Remove')}
                                             </Button>
                                         </div>
                                     </td>

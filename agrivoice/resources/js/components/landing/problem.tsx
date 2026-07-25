@@ -1,5 +1,6 @@
 import { EyeOff, Languages, MapPinned, TrendingDown } from 'lucide-react';
 
+import { AnimateIn } from '@/components/motion/animate-in';
 import { useTranslations } from '@/hooks/use-translations';
 
 const problems = [
@@ -35,7 +36,7 @@ export default function Problem() {
     return (
         <section className="relative overflow-hidden bg-background py-24 sm:py-32">
             <div className="mx-auto grid max-w-7xl gap-14 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:px-8">
-                <div className="max-w-md">
+                <AnimateIn className="max-w-md">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
                         {t('The problem')}
                     </p>
@@ -47,19 +48,24 @@ export default function Problem() {
                             'Every day, farmers across Ethiopia decide where and when to sell without the information they need.',
                         )}
                     </p>
-                </div>
+                </AnimateIn>
 
                 <ul className="divide-y divide-border border-y border-border">
-                    {problems.map((problem) => {
+                    {problems.map((problem, index) => {
                         const Icon = problem.icon;
 
                         return (
-                            <li
+                            <AnimateIn
                                 key={problem.title}
+                                as="li"
+                                index={index}
                                 className="flex gap-5 py-7 first:pt-0 last:pb-0 sm:gap-6 sm:py-8"
                             >
                                 <span className="mt-1 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                    <Icon className="size-5" strokeWidth={1.75} />
+                                    <Icon
+                                        className="size-5"
+                                        strokeWidth={1.75}
+                                    />
                                 </span>
                                 <div>
                                     <h3 className="text-lg font-semibold text-foreground">
@@ -69,7 +75,7 @@ export default function Problem() {
                                         {t(problem.description)}
                                     </p>
                                 </div>
-                            </li>
+                            </AnimateIn>
                         );
                     })}
                 </ul>

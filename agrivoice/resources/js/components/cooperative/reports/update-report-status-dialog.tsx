@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from '@/hooks/use-translations';
 import type {
     CooperativeReportRow,
     PaginatedCooperativeReports,
@@ -39,6 +41,7 @@ export function UpdateReportStatusDialog({
     open,
     onOpenChange,
 }: UpdateReportStatusDialogProps) {
+    const t = useTranslations();
     const form = useForm({
         status: 'disputed' as StatusActionTarget,
         reason: '',
@@ -130,7 +133,9 @@ export function UpdateReportStatusDialog({
             onError: (errors) => {
                 if (!errors.status && !errors.reason) {
                     toast.error(
-                        'Could not update this report status. Please try again.',
+                        t(
+                            'Could not update this report status. Please try again.',
+                        ),
                     );
                 }
             },
@@ -138,30 +143,57 @@ export function UpdateReportStatusDialog({
     };
 
     const title =
-        targetStatus === 'rejected' ? 'Reject report' : 'Dispute report';
-    const description =
         targetStatus === 'rejected'
-            ? 'Explain why this price report should be rejected.'
-            : 'Explain why this price report is being disputed.';
+            ? t('Reject report')
+            : t('Dispute report');
     const submitLabel =
-        targetStatus === 'rejected' ? 'Reject report' : 'Dispute report';
-    const reasonError = clientReasonError ?? form.errors.reason;
+        targetStatus === 'rejected'
+            ? t('Reject report')
+            : t('Dispute report');
+    const reasonError = clientReasonError
+        ? t(clientReasonError)
+        : form.errors.reason;
+
+    const description = (() => {
+        if (targetStatus === 'rejected') {
+            return report
+                ? t(
+                      'Explain why this price report should be rejected. :crop in :market · :reporter.',
+                      {
+                          crop: report.cropLabel,
+                          market: report.marketLabel,
+                          reporter:
+                              report.reporter.name || t('Unknown reporter'),
+                      },
+                  )
+                : t('Explain why this price report should be rejected.');
+        }
+
+        return report
+            ? t(
+                  'Explain why this price report is being disputed. :crop in :market · :reporter.',
+                  {
+                      crop: report.cropLabel,
+                      market: report.marketLabel,
+                      reporter: report.reporter.name || t('Unknown reporter'),
+                  },
+              )
+            : t('Explain why this price report is being disputed.');
+    })();
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
-                    <DialogDescription>
-                        {report
-                            ? `${description} ${report.cropLabel} in ${report.marketLabel} · ${report.reporter.name || 'Unknown reporter'}.`
-                            : description}
-                    </DialogDescription>
+                    <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="report-status-reason">Reason</Label>
-                        <textarea
+                        <Label htmlFor="report-status-reason">
+                            {t('Reason')}
+                        </Label>
+                        <Textarea
                             id="report-status-reason"
                             value={form.data.reason}
                             onChange={(event) => {
@@ -169,7 +201,7 @@ export function UpdateReportStatusDialog({
                                 form.setData('reason', event.target.value);
                             }}
                             rows={4}
-                            className="flex min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="min-h-24"
                             aria-invalid={Boolean(reasonError)}
                             aria-required="true"
                             disabled={form.processing}
@@ -185,7 +217,7 @@ export function UpdateReportStatusDialog({
                             onClick={() => handleOpenChange(false)}
                             disabled={form.processing}
                         >
-                            Cancel
+                            {t('Cancel')}
                         </Button>
                         <Button
                             type="submit"
@@ -200,7 +232,7 @@ export function UpdateReportStatusDialog({
                             {form.processing ? (
                                 <>
                                     <Spinner />
-                                    Saving…
+                                    {t('Saving…')}
                                 </>
                             ) : (
                                 submitLabel

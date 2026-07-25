@@ -8,7 +8,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import type { SharedFlash } from '@/types/ui';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = 'AgriVoice';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -23,6 +23,9 @@ createInertiaApp({
             case name.startsWith('portal/'):
                 return null;
             case name.startsWith('auth/'):
+                return AuthLayout;
+            case name.startsWith('Cooperative/auth/'):
+            case name.startsWith('cooperative/auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
@@ -48,7 +51,7 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        color: 'oklch(0.42 0.13 145)',
     },
 });
 

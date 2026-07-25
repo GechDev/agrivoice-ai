@@ -1,15 +1,19 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Mic } from 'lucide-react';
+import { ArrowRight, Menu, Mic, X } from 'lucide-react';
+import { useState } from 'react';
 
-import AppLogoIcon from '@/components/app-logo-icon';
+import AppLogo from '@/components/app-logo';
 import { AppearanceToggle } from '@/components/appearance-toggle';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/use-translations';
-import { dashboard, home, login } from '@/routes';
+import { dashboard, home, reportPrice } from '@/routes';
+import { login as cooperativeLogin } from '@/routes/cooperative';
+import { login as portalLogin } from '@/routes/portal';
 
 export default function Hero() {
     const t = useTranslations();
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
         <section className="relative isolate min-h-[100svh] overflow-hidden bg-background text-foreground">
@@ -28,9 +32,9 @@ export default function Hero() {
 
             <div
                 aria-hidden
-                className="pointer-events-none absolute inset-y-0 right-0 flex w-full items-center justify-center md:w-[58%] md:justify-end md:pr-[8%]"
+                className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] items-center justify-end pr-[8%] md:flex"
             >
-                <div className="relative flex size-[min(78vw,28rem)] items-center justify-center animate-agrivoice-drift md:size-[min(42vw,30rem)]">
+                <div className="relative flex size-[min(42vw,30rem)] items-center justify-center animate-agrivoice-drift">
                     <span className="absolute inset-[8%] rounded-full border border-foreground/10 animate-agrivoice-wave dark:border-white/15" />
                     <span className="absolute inset-[8%] rounded-full border border-foreground/8 animate-agrivoice-wave [animation-delay:1s] dark:border-white/10" />
                     <span className="absolute inset-[8%] rounded-full border border-foreground/8 animate-agrivoice-wave [animation-delay:2s] dark:border-white/10" />
@@ -42,26 +46,73 @@ export default function Hero() {
             </div>
 
             <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-                <Link
-                    href={home()}
-                    className="inline-flex items-center gap-2.5 text-lg font-semibold tracking-tight text-primary"
-                >
-                    <AppLogoIcon className="size-9 rounded-full" />
-                    {t('AgriVoice')}
+                <Link href={home()} className="inline-flex items-center">
+                    <AppLogo size="md" />
                 </Link>
                 <nav className="flex items-center gap-1 sm:gap-2">
                     <Link
-                        href={login()}
+                        href={portalLogin()}
+                        className="hidden rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-block"
+                    >
+                        {t('Agent portal')}
+                    </Link>
+                    <Link
+                        href={cooperativeLogin()}
                         className="hidden rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
                     >
-                        {t('Log in')}
+                        {t('Cooperative login')}
                     </Link>
                     <AppearanceToggle />
                     <LanguageSwitcher />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full md:hidden"
+                        aria-expanded={menuOpen}
+                        aria-label={
+                            menuOpen ? t('Close menu') : t('Open menu')
+                        }
+                        onClick={() => setMenuOpen((open) => !open)}
+                    >
+                        {menuOpen ? (
+                            <X className="size-5" />
+                        ) : (
+                            <Menu className="size-5" />
+                        )}
+                    </Button>
                 </nav>
             </header>
 
-            <div className="relative z-10 mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-7xl flex-col justify-center px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+            {menuOpen ? (
+                <div className="relative z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur md:hidden">
+                    <div className="mx-auto flex max-w-7xl flex-col gap-1">
+                        <Link
+                            href={portalLogin()}
+                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            {t('Agent portal')}
+                        </Link>
+                        <Link
+                            href={cooperativeLogin()}
+                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            {t('Cooperative login')}
+                        </Link>
+                        <Link
+                            href={reportPrice()}
+                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            {t('Report a price')}
+                        </Link>
+                    </div>
+                </div>
+            ) : null}
+
+            <div className="relative z-10 mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-7xl flex-col justify-center px-4 pt-8 pb-16 sm:px-6 lg:px-8">
                 <div className="max-w-xl animate-agrivoice-rise md:max-w-2xl">
                     <p className="font-serif text-[clamp(3.25rem,9vw,6.5rem)] leading-[0.92] font-semibold tracking-[-0.03em] text-foreground">
                         {t('AgriVoice')}
@@ -81,7 +132,7 @@ export default function Hero() {
                             className="h-12 rounded-full px-8 text-base font-semibold"
                         >
                             <Link href={dashboard()}>
-                                {t('Try AgriVoice Now')}
+                                {t('View live prices')}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </Button>
@@ -91,7 +142,9 @@ export default function Hero() {
                             size="lg"
                             className="h-12 rounded-full px-6 text-base font-medium"
                         >
-                            <a href="#how-it-works">{t('Watch How It Works')}</a>
+                            <Link href={reportPrice()}>
+                                {t('Report a price')}
+                            </Link>
                         </Button>
                     </div>
                 </div>

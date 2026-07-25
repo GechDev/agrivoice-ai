@@ -6,6 +6,7 @@ import {
     Sparkles,
 } from 'lucide-react';
 
+import { AnimateIn } from '@/components/motion/animate-in';
 import { useTranslations } from '@/hooks/use-translations';
 
 const features = [
@@ -46,22 +47,24 @@ export default function WhyVoice() {
     return (
         <section className="bg-muted/60 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl">
+                <AnimateIn className="max-w-2xl">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
                         {t('Why AgriVoice')}
                     </p>
                     <h2 className="mt-4 font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-foreground sm:text-5xl">
                         {t('Designed for the way farmers actually work')}
                     </h2>
-                </div>
+                </AnimateIn>
 
                 <div className="mt-16 grid gap-px overflow-hidden rounded-[1.75rem] border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-                    {features.map((feature) => {
+                    {features.map((feature, index) => {
                         const Icon = feature.icon;
 
                         return (
-                            <article
+                            <AnimateIn
                                 key={feature.title}
+                                as="article"
+                                index={index}
                                 className="bg-card p-8 transition-colors hover:bg-accent/40"
                             >
                                 <Icon
@@ -74,10 +77,14 @@ export default function WhyVoice() {
                                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                                     {t(feature.description)}
                                 </p>
-                            </article>
+                            </AnimateIn>
                         );
                     })}
-                    <article className="flex items-end bg-primary p-8 text-primary-foreground sm:col-span-2 lg:col-span-1">
+                    <AnimateIn
+                        as="article"
+                        index={features.length}
+                        className="flex items-end bg-primary p-8 text-primary-foreground sm:col-span-2 lg:col-span-1"
+                    >
                         <div>
                             <p className="font-serif text-3xl leading-tight font-semibold">
                                 {t('Speak. Hear. Decide.')}
@@ -88,7 +95,7 @@ export default function WhyVoice() {
                                 )}
                             </p>
                         </div>
-                    </article>
+                    </AnimateIn>
                 </div>
             </div>
         </section>

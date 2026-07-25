@@ -9,8 +9,22 @@ use App\Models\User;
 use App\Services\SnapshotService;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('guests cannot view the live reports list', function () {
-    $this->get(route('reports.index'))->assertRedirect(route('login'));
+test('guests can view the live reports list', function () {
+    $this->get(route('reports.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('reports')
+            ->where('canModerate', false)
+        );
+});
+
+test('guests cannot flag reports', function () {
+    $market = Market::factory()->adama()->create();
+    $report = Report::factory()->create([
+        'market_id' => $market->id,
+    ]);
+
+    $this->post(route('reports.flag', $report))->assertRedirect(route('login'));
 });
 
 test('authenticated users see newest reports with agent names', function () {
@@ -41,6 +55,7 @@ test('authenticated users see newest reports with agent names', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('reports')
+            ->where('canModerate', true)
             ->has('reports', 2)
             ->where('reports.0.crop', 'coffee')
             ->where('reports.0.agentName', 'Nati')

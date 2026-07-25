@@ -4,9 +4,13 @@ import type { ReportRowData } from '@/types';
 
 type RecentReportsFeedProps = {
     reports: ReportRowData[];
+    canModerate?: boolean;
 };
 
-export function RecentReportsFeed({ reports }: RecentReportsFeedProps) {
+export function RecentReportsFeed({
+    reports,
+    canModerate = false,
+}: RecentReportsFeedProps) {
     const t = useTranslations();
 
     if (reports.length === 0) {
@@ -25,7 +29,11 @@ export function RecentReportsFeed({ reports }: RecentReportsFeedProps) {
     return (
         <ul className="flex flex-col gap-3" aria-label={t('Recent reports')}>
             {reports.map((report) => (
-                <ReportRow key={report.id} report={report} />
+                <ReportRow
+                    key={report.id}
+                    report={report}
+                    canModerate={canModerate}
+                />
             ))}
         </ul>
     );

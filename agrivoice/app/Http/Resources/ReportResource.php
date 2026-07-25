@@ -43,7 +43,9 @@ class ReportResource extends JsonResource
             // ("Official" / "Crowd"). The field name "source" was chosen
             // because it's what a viewer cares about when judging a price.
             'source' => $report->reporter_type->value,
-            'agentName' => $report->agent->name,
+            'agentName' => $report->agent?->name
+                ?? $report->cooperativeMember?->displayName()
+                ?? 'Unknown',
             'isFlagged' => $report->is_flagged,
             'createdAt' => $report->created_at?->toIso8601String(),
         ];

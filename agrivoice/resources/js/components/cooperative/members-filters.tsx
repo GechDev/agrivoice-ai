@@ -8,6 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from '@/hooks/use-translations';
 import type { StatusOption } from '@/types/cooperative-members';
 
 type MembersFiltersProps = {
@@ -25,10 +26,12 @@ export function MembersFilters({
     onSearchChange,
     onStatusChange,
 }: MembersFiltersProps) {
+    const t = useTranslations();
+
     return (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <Label htmlFor="members-search">Search members</Label>
+                <Label htmlFor="members-search">{t('Search members')}</Label>
                 <div className="relative">
                     <Search
                         className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -39,14 +42,14 @@ export function MembersFilters({
                         type="search"
                         value={search}
                         onChange={(event) => onSearchChange(event.target.value)}
-                        placeholder="Search by name or phone"
+                        placeholder={t('Search by name or phone')}
                         className="pl-9"
                         autoComplete="off"
                     />
                 </div>
             </div>
             <div className="flex w-full flex-col gap-2 sm:w-52">
-                <Label htmlFor="members-status">Status</Label>
+                <Label htmlFor="members-status">{t('Status')}</Label>
                 <Select
                     value={status || 'all'}
                     onValueChange={(value) =>
@@ -56,15 +59,15 @@ export function MembersFilters({
                     <SelectTrigger
                         id="members-status"
                         className="w-full"
-                        aria-label="Filter by status"
+                        aria-label={t('Filter by status')}
                     >
-                        <SelectValue placeholder="All statuses" />
+                        <SelectValue placeholder={t('All statuses')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="all">{t('All statuses')}</SelectItem>
                         {statusOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
-                                {option.label}
+                                {t(option.label)}
                             </SelectItem>
                         ))}
                     </SelectContent>

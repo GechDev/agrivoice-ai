@@ -18,6 +18,8 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { PageSection, StaggerItem } from '@/components/motion/page-section';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +30,15 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/hooks/use-translations';
+import { formatCurrency } from '@/lib/agrivoice';
 import { dashboard } from '@/routes/cooperative';
+
+/**
+ * Cooperative overview — shadcn Cards/Badges + Recharts LineChart.
+ * Chart series are Inertia props from CooperativeDashboardController.
+ * Recharts is npm-bundled (no CDN / no public chart API).
+ */
 
 type CooperativeSummary = {
     id: number;
@@ -106,18 +116,14 @@ const activityCards = [
     },
 ] as const;
 
-const priceFormatter = new Intl.NumberFormat('en-ET', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-});
-
 function Delta({ value }: { value: number | null }) {
+    const t = useTranslations();
+
     if (value === null) {
         return (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 <Minus className="size-3" aria-hidden="true" />
-                No prior data
+                {t('No prior data')}
             </span>
         );
     }
@@ -129,34 +135,39 @@ function Delta({ value }: { value: number | null }) {
         <span
             className={
                 isPositive
-                    ? 'inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400'
+                    ? 'inline-flex items-center gap-1 text-xs font-medium text-primary'
                     : 'inline-flex items-center gap-1 text-xs font-medium text-destructive'
             }
         >
             <Icon className="size-3" aria-hidden="true" />
-            {Math.abs(value).toFixed(1)}% vs previous week
+            {t(':count% vs previous week', {
+                count: String(Math.abs(value).toFixed(1)),
+            })}
         </span>
     );
 }
 
 function ConfidenceBadge({ confidence }: { confidence: number }) {
+    const t = useTranslations();
     const className =
         confidence > 80
-            ? 'border-emerald-600/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
+            ? 'border-primary/30 bg-primary/15 text-primary'
             : confidence >= 50
               ? 'border-amber-600/30 bg-amber-500/15 text-amber-800 dark:text-amber-300'
               : 'border-destructive/30 bg-destructive/10 text-destructive';
 
     return (
         <Badge variant="outline" className={className}>
-            {confidence}% confidence
+            {t(':count% confidence', { count: String(confidence) })}
         </Badge>
     );
 }
 
 function TrendSkeleton() {
+    const t = useTranslations();
+
     return (
-        <Card aria-label="Loading crop trends">
+        <Card aria-label={t('Loading crop trends')}>
             <CardHeader>
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-72 max-w-full" />
@@ -169,6 +180,7 @@ function TrendSkeleton() {
 }
 
 function TrendPanel({ trends }: { trends: CropTrend[] }) {
+    const t = useTranslations();
     const [selectedCrop, setSelectedCrop] = useState(trends.at(0)?.crop ?? '');
     const [range, setRange] = useState<30 | 90>(30);
     const selectedTrend =
@@ -193,10 +205,11 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Crop price trends</CardTitle>
+                    <CardTitle>{t('Crop price trends')}</CardTitle>
                     <CardDescription>
-                        Add default crops in cooperative settings to start
-                        tracking trends.
+                        {t(
+                            'Add default crops in cooperative settings to start tracking trends.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -207,14 +220,16 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
         <Card>
             <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex flex-col gap-1.5">
-                    <CardTitle>Crop price trends</CardTitle>
+                    <CardTitle>{t('Crop price trends')}</CardTitle>
                     <CardDescription>
-                        Cooperative reports with the latest forecast overlay.
+                        {t(
+                            'Cooperative reports with the latest forecast overlay.',
+                        )}
                     </CardDescription>
                 </div>
                 <div
                     className="inline-flex w-fit rounded-lg border bg-muted p-1"
-                    aria-label="Chart history range"
+                    aria-label={t('Chart history range')}
                 >
                     {([30, 90] as const).map((days) => (
                         <button
@@ -225,7 +240,7 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                             className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[active=true]:bg-card data-[active=true]:text-foreground data-[active=true]:shadow-sm"
                             data-active={range === days}
                         >
-                            {days} days
+                            {t(':count days', { count: String(days) })}
                         </button>
                     ))}
                 </div>
@@ -234,7 +249,7 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                 {trends.length > 1 && (
                     <div
                         role="tablist"
-                        aria-label="Select crop"
+                        aria-label={t('Select crop')}
                         className="flex flex-wrap gap-2"
                     >
                         {trends.map((trend) => (
@@ -248,7 +263,7 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                                 onClick={() => setSelectedCrop(trend.crop)}
                                 className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-selected:border-primary aria-selected:bg-primary aria-selected:text-primary-foreground"
                             >
-                                {trend.cropLabel}
+                                {t(trend.cropLabel)}
                             </button>
                         ))}
                     </div>
@@ -257,10 +272,11 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                 {points.length === 0 ? (
                     <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed bg-muted/40 p-8 text-center">
                         <div>
-                            <p className="font-medium">No trend data yet</p>
+                            <p className="font-medium">{t('No trend data yet')}</p>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Reports and forecasts for this crop will appear
-                                here.
+                                {t(
+                                    'Reports and forecasts for this crop will appear here.',
+                                )}
                             </p>
                         </div>
                     </div>
@@ -269,16 +285,16 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-2">
                                 <span className="h-0.5 w-6 bg-chart-1" />
-                                Reported average
+                                {t('Reported average')}
                             </span>
                             <span className="inline-flex items-center gap-2">
                                 <span className="w-6 border-t-2 border-dashed border-chart-3" />
-                                Forecast
+                                {t('Forecast')}
                             </span>
                         </div>
                         <div
                             className="h-72 w-full"
-                            aria-label="Price trend chart"
+                            aria-label={t('Price trend chart')}
                         >
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart
@@ -324,7 +340,7 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                                     />
                                     <Tooltip
                                         formatter={(value, name) => [
-                                            priceFormatter.format(
+                                            formatCurrency(
                                                 Number(
                                                     Array.isArray(value)
                                                         ? value[0]
@@ -332,8 +348,8 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                                                 ),
                                             ),
                                             name === 'actual'
-                                                ? 'Reported average'
-                                                : 'Forecast',
+                                                ? t('Reported average')
+                                                : t('Forecast'),
                                         ]}
                                         labelFormatter={(date) =>
                                             new Intl.DateTimeFormat('en', {
@@ -384,10 +400,12 @@ export default function Dashboard({
     memberActivity,
     trends,
 }: DashboardProps) {
+    const t = useTranslations();
+
     setLayoutProps({
         breadcrumbs: [
             {
-                title: 'Cooperative dashboard',
+                title: t('Cooperative dashboard'),
                 href: dashboard(),
             },
         ],
@@ -395,144 +413,166 @@ export default function Dashboard({
 
     return (
         <>
-            <Head title={`${cooperative.name} dashboard`} />
+            <Head
+                title={t(':name dashboard', { name: cooperative.name })}
+            />
             <div className="flex flex-1 flex-col gap-8 overflow-x-hidden p-4 md:p-6">
-                <header className="flex flex-col gap-1">
-                    <p className="text-sm font-medium text-primary">
-                        {cooperative.region}
-                    </p>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                        {cooperative.name}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Member activity and market intelligence at a glance.
-                    </p>
-                </header>
+                <PageSection>
+                    <PageHeader
+                        title={cooperative.name}
+                        description={t(
+                            'Member activity and market intelligence at a glance.',
+                        )}
+                        actions={
+                            <p className="text-sm font-medium text-primary">
+                                {cooperative.region}
+                            </p>
+                        }
+                    />
+                </PageSection>
 
                 <section aria-labelledby="member-activity-heading">
-                    <div className="mb-4">
+                    <PageSection delay={1} className="mb-4">
                         <h2
                             id="member-activity-heading"
                             className="text-lg font-semibold"
                         >
-                            Member activity
+                            {t('Member activity')}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Trailing seven days compared with the prior period.
+                            {t(
+                                'Trailing seven days compared with the prior period.',
+                            )}
                         </p>
-                    </div>
+                    </PageSection>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        {activityCards.map((item) => {
+                        {activityCards.map((item, index) => {
                             const metric = memberActivity[item.key];
                             const Icon = item.icon;
 
                             return (
-                                <Card key={item.key} className="gap-4">
-                                    <CardHeader className="flex-row items-start justify-between gap-3">
-                                        <div className="flex flex-col gap-1.5">
-                                            <CardDescription>
-                                                {item.label}
-                                            </CardDescription>
-                                            <CardTitle className="text-3xl">
-                                                {metric.value.toLocaleString()}
-                                            </CardTitle>
-                                        </div>
-                                        <span className="rounded-xl bg-primary/10 p-2.5 text-primary">
-                                            <Icon
-                                                className="size-5"
-                                                aria-hidden="true"
+                                <StaggerItem key={item.key} index={index}>
+                                    <Card className="av-hover-lift gap-4">
+                                        <CardHeader className="flex-row items-start justify-between gap-3">
+                                            <div className="flex flex-col gap-1.5">
+                                                <CardDescription>
+                                                    {t(item.label)}
+                                                </CardDescription>
+                                                <CardTitle className="text-3xl">
+                                                    {metric.value.toLocaleString()}
+                                                </CardTitle>
+                                            </div>
+                                            <span className="rounded-xl bg-primary/10 p-2.5 text-primary">
+                                                <Icon
+                                                    className="size-5"
+                                                    aria-hidden="true"
+                                                />
+                                            </span>
+                                        </CardHeader>
+                                        <CardContent className="flex flex-col gap-2">
+                                            <Delta
+                                                value={metric.changePercent}
                                             />
-                                        </span>
-                                    </CardHeader>
-                                    <CardContent className="flex flex-col gap-2">
-                                        <Delta value={metric.changePercent} />
-                                        <p className="text-xs text-muted-foreground">
-                                            {item.description}
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                            <p className="text-xs text-muted-foreground">
+                                                {t(item.description)}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                </StaggerItem>
                             );
                         })}
                     </div>
                 </section>
 
                 <section aria-labelledby="price-overview-heading">
-                    <div className="mb-4">
+                    <PageSection delay={2} className="mb-4">
                         <h2
                             id="price-overview-heading"
                             className="text-lg font-semibold"
                         >
-                            Aggregated price overview
+                            {t('Aggregated price overview')}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Verified member reports from this calendar week.
+                            {t(
+                                'Verified member reports from this calendar week.',
+                            )}
                         </p>
-                    </div>
+                    </PageSection>
 
                     {prices.length === 0 ? (
-                        <Card className="border-dashed">
-                            <CardContent className="flex min-h-40 items-center justify-center text-center">
-                                <div>
-                                    <p className="font-medium">
-                                        No price reports yet this week
-                                    </p>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        New verified member reports will appear
-                                        here.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <PageSection delay={3}>
+                            <Card className="border-dashed">
+                                <CardContent className="flex min-h-40 items-center justify-center text-center">
+                                    <div>
+                                        <p className="font-medium">
+                                            {t(
+                                                'No price reports yet this week',
+                                            )}
+                                        </p>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {t(
+                                                'New verified member reports will appear here.',
+                                            )}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </PageSection>
                     ) : (
                         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                            {prices.map((price) => (
-                                <Card
+                            {prices.map((price, index) => (
+                                <StaggerItem
                                     key={`${price.crop}-${price.market}`}
-                                    className="gap-4"
+                                    index={index}
+                                    baseDelay={160}
                                 >
-                                    <CardHeader className="gap-3">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <CardTitle>
-                                                    {price.cropLabel}
-                                                </CardTitle>
-                                                <CardDescription>
-                                                    {price.marketLabel}
-                                                </CardDescription>
+                                    <Card className="av-hover-lift gap-4">
+                                        <CardHeader className="gap-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <CardTitle>
+                                                        {t(price.cropLabel)}
+                                                    </CardTitle>
+                                                    <CardDescription>
+                                                        {t(price.marketLabel)}
+                                                    </CardDescription>
+                                                </div>
+                                                <ConfidenceBadge
+                                                    confidence={
+                                                        price.confidence
+                                                    }
+                                                />
                                             </div>
-                                            <ConfidenceBadge
-                                                confidence={price.confidence}
-                                            />
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="flex flex-col gap-3">
-                                        <p className="text-2xl font-bold tracking-tight">
-                                            {priceFormatter.format(
-                                                price.averagePrice,
-                                            )}
-                                            <span className="ml-1 text-xs font-normal text-muted-foreground">
-                                                / quintal
-                                            </span>
-                                        </p>
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <Delta
-                                                value={price.changePercent}
-                                            />
-                                            <span className="text-xs text-muted-foreground">
-                                                {price.reportCount}{' '}
-                                                {price.reportCount === 1
-                                                    ? 'report'
-                                                    : 'reports'}
-                                            </span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        </CardHeader>
+                                        <CardContent className="flex flex-col gap-3">
+                                            <p className="text-2xl font-bold tracking-tight">
+                                                {formatCurrency(
+                                                    price.averagePrice,
+                                                )}
+                                                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                                                    {t('/ quintal')}
+                                                </span>
+                                            </p>
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <Delta
+                                                    value={price.changePercent}
+                                                />
+                                                <span className="text-xs text-muted-foreground">
+                                                    {price.reportCount}{' '}
+                                                    {price.reportCount === 1
+                                                        ? t('report')
+                                                        : t('reports')}
+                                                </span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </StaggerItem>
                             ))}
                         </div>
                     )}
                 </section>
 
-                <section aria-label="Crop price trends">
+                <PageSection delay={4} aria-label={t('Crop price trends')}>
                     <Deferred
                         data="trends"
                         fallback={<TrendSkeleton />}
@@ -541,11 +581,14 @@ export default function Dashboard({
                                 <CardContent className="flex min-h-48 flex-col items-center justify-center gap-3 text-center">
                                     <div>
                                         <p className="font-medium">
-                                            Trend data could not be loaded
+                                            {t(
+                                                'Trend data could not be loaded',
+                                            )}
                                         </p>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            Your other dashboard data is still
-                                            available.
+                                            {t(
+                                                'Your other dashboard data is still available.',
+                                            )}
                                         </p>
                                     </div>
                                     <Button
@@ -554,7 +597,7 @@ export default function Dashboard({
                                             router.reload({ only: ['trends'] })
                                         }
                                     >
-                                        Try again
+                                        {t('Try again')}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -562,7 +605,7 @@ export default function Dashboard({
                     >
                         <TrendPanel trends={trends ?? []} />
                     </Deferred>
-                </section>
+                </PageSection>
             </div>
         </>
     );

@@ -12,7 +12,10 @@ import { MembersFilters } from '@/components/cooperative/members-filters';
 import { MembersPagination } from '@/components/cooperative/members-pagination';
 import { MembersTable } from '@/components/cooperative/members-table';
 import { RemoveMemberDialog } from '@/components/cooperative/remove-member-dialog';
+import { PageSection } from '@/components/motion/page-section';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/hooks/use-translations';
 import { dashboard as cooperativeDashboard } from '@/routes/cooperative';
 import type {
     MemberFilters,
@@ -49,6 +52,7 @@ export default function MembersIndex({
     statusOptions,
     selectedMember,
 }: MembersIndexProps) {
+    const t = useTranslations();
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const [filtering, setFiltering] = useState(false);
@@ -62,11 +66,11 @@ export default function MembersIndex({
     setLayoutProps({
         breadcrumbs: [
             {
-                title: 'Cooperative dashboard',
+                title: t('Cooperative dashboard'),
                 href: cooperativeDashboard(),
             },
             {
-                title: 'Members',
+                title: t('Members'),
                 href: index(),
             },
         ],
@@ -156,71 +160,78 @@ export default function MembersIndex({
 
     return (
         <>
-            <Head title="Cooperative members" />
+            <Head title={t('Cooperative members')} />
             <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6">
-                <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                            Members
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Invite farmers, review activity, and manage your
-                            cooperative roster.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setBulkOpen(true)}
-                            aria-label="Bulk invite members from CSV"
-                        >
-                            <Upload aria-hidden="true" />
-                            Bulk CSV
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={() => setInviteOpen(true)}
-                            aria-label="Invite a member"
-                        >
-                            <UserPlus aria-hidden="true" />
-                            Invite member
-                        </Button>
-                    </div>
-                </header>
+                <PageSection>
+                    <PageHeader
+                        title={t('Members')}
+                        description={t(
+                            'Invite farmers, review activity, and manage your cooperative roster.',
+                        )}
+                        actions={
+                            <>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setBulkOpen(true)}
+                                    aria-label={t(
+                                        'Bulk invite members from CSV',
+                                    )}
+                                >
+                                    <Upload aria-hidden="true" />
+                                    {t('Bulk CSV')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={() => setInviteOpen(true)}
+                                    aria-label={t('Invite a member')}
+                                >
+                                    <UserPlus aria-hidden="true" />
+                                    {t('Invite member')}
+                                </Button>
+                            </>
+                        }
+                    />
+                </PageSection>
 
-                <MembersFilters
-                    search={search}
-                    status={status}
-                    statusOptions={statusOptions}
-                    onSearchChange={handleSearchChange}
-                    onStatusChange={handleStatusChange}
-                />
+                <PageSection delay={1}>
+                    <MembersFilters
+                        search={search}
+                        status={status}
+                        statusOptions={statusOptions}
+                        onSearchChange={handleSearchChange}
+                        onStatusChange={handleStatusChange}
+                    />
+                </PageSection>
 
-                <MembersTable
-                    members={members.data}
-                    loading={filtering}
-                    onView={openMember}
-                    onRemove={setMemberToRemove}
-                />
+                <PageSection delay={2}>
+                    <MembersTable
+                        members={members.data}
+                        loading={filtering}
+                        onView={openMember}
+                        onRemove={setMemberToRemove}
+                    />
+                </PageSection>
 
-                <MembersPagination
-                    members={members}
-                    onPrevious={() =>
-                        navigateWithFilters(
-                            search,
-                            status,
-                            Math.max(1, members.current_page - 1),
-                        )
-                    }
-                    onNext={() =>
-                        navigateWithFilters(
-                            search,
-                            status,
-                            members.current_page + 1,
-                        )
-                    }
-                />
+                <PageSection delay={3}>
+                    <MembersPagination
+                        members={members}
+                        onPrevious={() =>
+                            navigateWithFilters(
+                                search,
+                                status,
+                                Math.max(1, members.current_page - 1),
+                            )
+                        }
+                        onNext={() =>
+                            navigateWithFilters(
+                                search,
+                                status,
+                                members.current_page + 1,
+                            )
+                        }
+                    />
+                </PageSection>
             </div>
 
             <InviteMemberDialog

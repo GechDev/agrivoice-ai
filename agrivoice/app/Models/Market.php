@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -38,6 +39,12 @@ class Market extends Model
         'latitude',
         'longitude',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget('dashboard.markets'));
+        static::deleted(fn () => Cache::forget('dashboard.markets'));
+    }
 
     /**
      * @return array<string, string>

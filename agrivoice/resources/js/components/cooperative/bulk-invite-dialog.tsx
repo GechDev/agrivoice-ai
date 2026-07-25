@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/hooks/use-translations';
 import { tryNormalizeEthiopianPhone } from '@/lib/ethiopian-phone';
 import type { BulkInviteSummary } from '@/types/cooperative-members';
 
@@ -86,6 +87,7 @@ export function BulkInviteDialog({
     open,
     onOpenChange,
 }: BulkInviteDialogProps) {
+    const t = useTranslations();
     const page = usePage();
     const form = useForm<{ csv: File | null }>({
         csv: null,
@@ -95,7 +97,9 @@ export function BulkInviteDialog({
     const [fileName, setFileName] = useState<string | null>(null);
 
     const summary = page.props.flash?.bulkInviteSummary as
-        BulkInviteSummary | null | undefined;
+        | BulkInviteSummary
+        | null
+        | undefined;
 
     const validCount = preview.filter((row) => row.valid).length;
     const invalidCount = preview.length - validCount;
@@ -147,7 +151,10 @@ export function BulkInviteDialog({
         event.preventDefault();
 
         if (!form.data.csv) {
-            form.setError('csv', 'Upload a CSV file of members to invite.');
+            form.setError(
+                'csv',
+                t('Upload a CSV file of members to invite.'),
+            );
             return;
         }
 
@@ -164,7 +171,9 @@ export function BulkInviteDialog({
             onError: (errors) => {
                 if (!errors.csv) {
                     toast.error(
-                        'Bulk invite failed. Please check the file and try again.',
+                        t(
+                            'Bulk invite failed. Please check the file and try again.',
+                        ),
                     );
                 }
             },
@@ -175,18 +184,11 @@ export function BulkInviteDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Bulk invite from CSV</DialogTitle>
+                    <DialogTitle>{t('Bulk invite from CSV')}</DialogTitle>
                     <DialogDescription>
-                        Upload a CSV with{' '}
-                        <span className="font-medium text-foreground">
-                            name
-                        </span>{' '}
-                        and{' '}
-                        <span className="font-medium text-foreground">
-                            phone_number
-                        </span>{' '}
-                        (or phone) columns. Client preview is for guidance
-                        only—the server validates every row.
+                        {t(
+                            'Upload a CSV with name and phone_number (or phone) columns. Client preview is for guidance only—the server validates every row.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -196,22 +198,29 @@ export function BulkInviteDialog({
                         role="status"
                         aria-live="polite"
                     >
-                        <p className="font-medium">Last upload summary</p>
+                        <p className="font-medium">{t('Last upload summary')}</p>
                         <ul className="mt-2 flex flex-wrap gap-2 text-sm">
                             <li>
                                 <Badge variant="outline">
-                                    Invited: {summary.invited}
+                                    {t('Invited: :count', {
+                                        count: String(summary.invited),
+                                    })}
                                 </Badge>
                             </li>
                             <li>
                                 <Badge variant="outline">
-                                    Skipped duplicates:{' '}
-                                    {summary.skipped_duplicates}
+                                    {t('Skipped duplicates: :count', {
+                                        count: String(
+                                            summary.skipped_duplicates,
+                                        ),
+                                    })}
                                 </Badge>
                             </li>
                             <li>
                                 <Badge variant="outline">
-                                    Invalid format: {summary.invalid_format}
+                                    {t('Invalid format: :count', {
+                                        count: String(summary.invalid_format),
+                                    })}
                                 </Badge>
                             </li>
                         </ul>
@@ -220,7 +229,7 @@ export function BulkInviteDialog({
 
                 <form onSubmit={submit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="bulk-csv">CSV file</Label>
+                        <Label htmlFor="bulk-csv">{t('CSV file')}</Label>
                         <Input
                             id="bulk-csv"
                             type="file"
@@ -231,13 +240,13 @@ export function BulkInviteDialog({
                         />
                         {fileName ? (
                             <p className="text-xs text-muted-foreground">
-                                Selected: {fileName}
+                                {t('Selected: :name', { name: fileName })}
                             </p>
                         ) : null}
                         <InputError message={form.errors.csv} />
                         {parseError ? (
                             <p className="text-sm text-destructive">
-                                {parseError}
+                                {t(parseError)}
                             </p>
                         ) : null}
                     </div>
@@ -246,37 +255,47 @@ export function BulkInviteDialog({
                         <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
                             <div className="flex flex-wrap gap-2 text-sm">
                                 <Badge variant="outline">
-                                    Preview rows: {preview.length}
+                                    {t('Preview rows: :count', {
+                                        count: String(preview.length),
+                                    })}
                                 </Badge>
                                 <Badge
                                     variant="outline"
-                                    className="border-emerald-600/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+                                    className="border-primary/30 bg-primary/15 text-primary"
                                 >
-                                    Likely valid: {validCount}
+                                    {t('Likely valid: :count', {
+                                        count: String(validCount),
+                                    })}
                                 </Badge>
                                 <Badge
                                     variant="outline"
                                     className="border-destructive/30 bg-destructive/10 text-destructive"
                                 >
-                                    Likely invalid: {invalidCount}
+                                    {t('Likely invalid: :count', {
+                                        count: String(invalidCount),
+                                    })}
                                 </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Showing the first {previewRows.length} rows.
-                                Counts are approximate client-side checks.
+                                {t(
+                                    'Showing the first :count rows. Counts are approximate client-side checks.',
+                                    {
+                                        count: String(previewRows.length),
+                                    },
+                                )}
                             </p>
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[28rem] text-left text-xs">
                                     <thead>
                                         <tr className="border-b">
                                             <th className="py-2 pr-3 font-medium">
-                                                Name
+                                                {t('Name')}
                                             </th>
                                             <th className="py-2 pr-3 font-medium">
-                                                Phone
+                                                {t('Phone')}
                                             </th>
                                             <th className="py-2 font-medium">
-                                                Preview
+                                                {t('Preview')}
                                             </th>
                                         </tr>
                                     </thead>
@@ -294,18 +313,30 @@ export function BulkInviteDialog({
                                                 </td>
                                                 <td className="py-2">
                                                     {row.valid ? (
-                                                        <span className="text-emerald-700 dark:text-emerald-400">
-                                                            Likely valid (
-                                                            {row.normalized})
+                                                        <span className="text-primary">
+                                                            {t(
+                                                                'Likely valid (:phone)',
+                                                                {
+                                                                    phone:
+                                                                        row.normalized ??
+                                                                        '',
+                                                                },
+                                                            )}
                                                         </span>
                                                     ) : (
                                                         <span className="text-destructive">
                                                             {row.name === ''
-                                                                ? 'Missing name'
+                                                                ? t(
+                                                                      'Missing name',
+                                                                  )
                                                                 : row.normalized ===
                                                                     null
-                                                                  ? 'Invalid phone'
-                                                                  : 'Needs review'}
+                                                                  ? t(
+                                                                        'Invalid phone',
+                                                                    )
+                                                                  : t(
+                                                                        'Needs review',
+                                                                    )}
                                                         </span>
                                                     )}
                                                 </td>
@@ -324,7 +355,7 @@ export function BulkInviteDialog({
                             aria-live="polite"
                         >
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Uploading…</span>
+                                <span>{t('Uploading…')}</span>
                                 <span>{form.progress.percentage ?? 0}%</span>
                             </div>
                             <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -345,7 +376,7 @@ export function BulkInviteDialog({
                             onClick={() => handleOpenChange(false)}
                             disabled={form.processing}
                         >
-                            Cancel
+                            {t('Cancel')}
                         </Button>
                         <Button
                             type="submit"
@@ -354,10 +385,10 @@ export function BulkInviteDialog({
                             {form.processing ? (
                                 <>
                                     <Spinner />
-                                    Uploading…
+                                    {t('Uploading…')}
                                 </>
                             ) : (
-                                'Upload and invite'
+                                t('Upload and invite')
                             )}
                         </Button>
                     </DialogFooter>

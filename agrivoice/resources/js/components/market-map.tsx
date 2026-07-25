@@ -1,3 +1,25 @@
+/**
+ * Interactive Leaflet map showing all tracked markets with price popups.
+ *
+ * Each market gets a marker at its geographic coordinates. Clicking a marker
+ * opens a popup listing every crop's latest price, confidence score, and
+ * report count for that market. The map auto-fits bounds to encompass all
+ * markers with padding, so it works whether there are 1 or 10 markets.
+ *
+ * Design decisions:
+ * - `scrollWheelZoom: false` prevents accidental zoom when scrolling the dashboard.
+ * - OpenStreetMap tiles (map imagery only — no app data API; allowlisted in CSP).
+ * - Marker icons are imported from the leaflet package and merged into
+ *   `L.Icon.Default` to fix the well-known webpack/vite bundling issue.
+ * - Price/snapshot data is Inertia props from DashboardController — never fetched
+ *   from a public REST endpoint.
+ * - Markers are managed via a `L.LayerGroup` — on each props update the layer
+ *   is cleared and rebuilt rather than diffing, which is fine for ≤10 markets.
+ *
+ * Props come from DashboardController via PriceSnapshotResource and
+ * MarketMarkerResource. The snapshots array is pre-grouped by market in the
+ * `useMemo` below to avoid O(n²) lookups during marker creation.
+ */
 import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -5,9 +27,14 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { useTranslations } from '@/hooks/use-translations';
-import { cropLabel, marketLabel } from '@/lib/agrivoice';
+import { cropLabel, formatPrice, marketLabel } from '@/lib/agrivoice';
 import type { MarketMarker, PriceSnapshot } from '@/types';
 
+/**
+ * Fix Leaflet's default marker icons when bundled by Vite/Webpack.
+ * Without this, markers appear as broken images because the default
+ * icon URLs point to a path that doesn't exist in the bundle.
+ */
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
@@ -25,6 +52,11 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<L.LayerGroup | null>(null);
 
+    /**
+     * Pre-group snapshots by market slug so marker creation is O(n) instead of O(n²).
+     * The map is rebuilt from scratch on every props change (see useEffect below),
+     * which is acceptable for the small number of markets in this demo.
+     */
     const snapshotsByMarket = useMemo(() => {
         const map = new Map<string, PriceSnapshot[]>();
 
@@ -37,6 +69,14 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         return map;
     }, [snapshots]);
 
+    /**
+     * Initialize the Leaflet map once on mount. The empty dependency array
+     * ensures this only runs a single time — subsequent re-renders update
+     * markers via the second useEffect, not the map instance itself.
+     *
+     * Centered on Ethiopia (8.5°N, 38.5°E) at zoom level 6, which shows
+     * all three markets (Adama, Addis Ababa, Jimma) in a single view.
+     */
     useEffect(() => {
         if (!containerRef.current || mapRef.current) {
             return;
@@ -63,6 +103,13 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         };
     }, []);
 
+    /**
+     * Rebuild all markers whenever markets or snapshots change.
+     * Clears the entire layer group and re-creates markers from scratch.
+     * Each marker's popup contains an HTML table of crop prices, confidence,
+     * and report count. After all markers are added, fitBounds zooms the
+     * map to show all points with padding.
+     */
     useEffect(() => {
         const map = mapRef.current;
         const layer = markersRef.current;
@@ -86,7 +133,7 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
                     const price =
                         s.reportCount === 0
                             ? collecting
-                            : `${new Intl.NumberFormat('en-ET', { maximumFractionDigits: 0 }).format(s.price)} ${t('ETB/q')}`;
+                            : `${formatPrice(s.price)} ${t('ETB/q')}`;
 
                     return `<strong>${t(cropLabel(s.crop))}</strong>: ${price} · ${s.confidence}% ${confLabel} · ${s.reportCount} ${reportsLabel}`;
                 })

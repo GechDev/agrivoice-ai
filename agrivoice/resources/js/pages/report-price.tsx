@@ -1,8 +1,19 @@
-import { Head, useForm } from '@inertiajs/react';
-import { CheckCircle2, Coffee, Wheat } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    Bean,
+    CheckCircle2,
+    Coffee,
+    Leaf,
+    Nut,
+    Sprout,
+    Wheat,
+} from 'lucide-react';
 import { useState } from 'react';
 
+import AppLogo from '@/components/app-logo';
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import InputError from '@/components/input-error';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import {
     Alert,
     AlertDescription,
@@ -26,12 +37,20 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { CROPS, cropLabel, marketLabel, todayAsInputValue } from '@/lib/agrivoice';
+import { useTranslations } from '@/hooks/use-translations';
+import { CROPS, cropLabel, todayAsInputValue } from '@/lib/agrivoice';
+import { home } from '@/routes';
+import { store } from '@/routes/report-price';
 import type { Crop, Market as MarketType, MarketOption } from '@/types';
 
 const CROP_ICONS = {
     teff: Wheat,
     coffee: Coffee,
+    maize: Leaf,
+    wheat: Sprout,
+    sesame: Nut,
+    pulses: Bean,
+    sorghum: Leaf,
 } as const;
 
 type ReportPriceProps = {
@@ -39,6 +58,7 @@ type ReportPriceProps = {
 };
 
 export default function ReportPrice({ markets }: ReportPriceProps) {
+    const t = useTranslations();
     const [showDialog, setShowDialog] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -50,7 +70,7 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
 
     const submit = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault();
-        post('/report-price', {
+        post(store.url(), {
             onSuccess: () => {
                 setShowDialog(true);
             },
@@ -64,42 +84,48 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
 
     return (
         <>
-            <Head title="Report a price" />
+            <Head title={t('Report a price')} />
 
             <div className="min-h-dvh bg-muted/30">
                 <header className="border-b border-border/70 bg-background/85 backdrop-blur-md">
-                    <div className="mx-auto flex h-16 max-w-3xl items-center px-4 sm:px-6">
-                        <a
-                            href="/"
-                            className="text-lg font-bold tracking-[-0.01em] text-primary"
-                        >
-                            AgriVoice
-                        </a>
-                        <span
-                            aria-hidden
-                            className="mx-3 h-4 w-px bg-border"
-                        />
-                        <span className="text-sm font-medium text-muted-foreground">
-                            Report a price
-                        </span>
+                    <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4 sm:px-6">
+                        <div className="flex min-w-0 items-center">
+                            <Link
+                                href={home()}
+                                className="inline-flex items-center"
+                            >
+                                <AppLogo size="md" />
+                            </Link>
+                            <span
+                                aria-hidden
+                                className="mx-3 hidden h-4 w-px bg-border sm:block"
+                            />
+                            <span className="hidden truncate text-sm font-medium text-muted-foreground sm:inline">
+                                {t('Report a price')}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <AppearanceToggle />
+                            <LanguageSwitcher />
+                        </div>
                     </div>
                 </header>
 
                 <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
                     <div className="mb-8 max-w-xl">
-                        <h1 className="text-2xl font-bold tracking-[-0.01em] sm:text-3xl">
-                            Report a price
+                        <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
+                            {t('Report a price')}
                         </h1>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                            Heard a price at the market? Enter it below and our
-                            team will verify it before adding it to the live
-                            dashboard.
+                            {t(
+                                'Heard a price at the market? Enter it below and our team will verify it before adding it to the live dashboard.',
+                            )}
                         </p>
                     </div>
 
                     <form onSubmit={submit} className="space-y-7">
                         <div className="space-y-3">
-                            <Label>Crop</Label>
+                            <Label>{t('Crop')}</Label>
                             <div className="grid gap-2 sm:grid-cols-2">
                                 {CROPS.map((crop) => {
                                     const Icon = CROP_ICONS[crop];
@@ -129,7 +155,7 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                                                 <Icon className="size-5" />
                                             </span>
                                             <span className="font-medium">
-                                                {cropLabel(crop)}
+                                                {t(cropLabel(crop))}
                                             </span>
                                         </button>
                                     );
@@ -140,7 +166,9 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
 
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div className="space-y-3">
-                                <Label htmlFor="public-market">Market</Label>
+                                <Label htmlFor="public-market">
+                                    {t('Market')}
+                                </Label>
                                 <Select
                                     value={data.market}
                                     onValueChange={(market) =>
@@ -151,7 +179,9 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                                         id="public-market"
                                         className="h-11 w-full rounded-2xl"
                                     >
-                                        <SelectValue placeholder="Choose a market" />
+                                        <SelectValue
+                                            placeholder={t('Choose a market')}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent align="start">
                                         {markets.map((market) => (
@@ -174,7 +204,7 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
 
                             <div className="space-y-3">
                                 <Label htmlFor="public-reported_at">
-                                    Observed on
+                                    {t('Observed on')}
                                 </Label>
                                 <Input
                                     id="public-reported_at"
@@ -194,13 +224,13 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                         </div>
 
                         <div className="space-y-3">
-                            <Label htmlFor="public-price">Price</Label>
+                            <Label htmlFor="public-price">{t('Price')}</Label>
                             <div className="relative">
                                 <span
                                     aria-hidden
                                     className="pointer-events-none absolute top-1/2 left-5 -translate-y-1/2 text-sm font-semibold text-muted-foreground"
                                 >
-                                    ETB
+                                    {t('ETB')}
                                 </span>
                                 <Input
                                     id="public-price"
@@ -213,13 +243,13 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                                     }
                                     aria-invalid={Boolean(errors.price)}
                                     autoFocus
-                                    className="h-16 w-full rounded-2xl pl-16 pr-32 text-2xl font-semibold tabular-nums"
+                                    className="h-16 w-full rounded-2xl pr-32 pl-16 text-2xl font-semibold tabular-nums"
                                 />
                                 <span
                                     aria-hidden
                                     className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-sm text-muted-foreground"
                                 >
-                                    per quintal
+                                    {t('per quintal')}
                                 </span>
                             </div>
                             <InputError message={errors.price} />
@@ -233,7 +263,7 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                                 className="w-full sm:w-auto"
                             >
                                 {processing ? <Spinner /> : null}
-                                Submit for review
+                                {t('Submit for review')}
                             </Button>
                         </div>
                     </form>
@@ -247,29 +277,29 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                             <CheckCircle2 className="size-6 text-primary" />
                         </span>
                         <DialogTitle className="mt-4 text-xl">
-                            Report submitted
+                            {t('Report submitted')}
                         </DialogTitle>
                         <DialogDescription className="text-sm leading-relaxed">
-                            Your price report has been received and is pending
-                            verification. A moderator will review it before it
-                            appears on the live dashboard.
+                            {t(
+                                'Your price report has been received and is pending verification. A moderator will review it before it appears on the live dashboard.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <Alert variant="default" className="text-left">
                         <AlertTitle className="text-sm font-semibold">
-                            What happens next?
+                            {t('What happens next?')}
                         </AlertTitle>
                         <AlertDescription className="mt-1 text-xs leading-relaxed">
-                            Our team checks each crowd-sourced report for
-                            accuracy. Once verified, it will contribute to the
-                            market snapshot for that crop and location.
+                            {t(
+                                'Our team checks each crowd-sourced report for accuracy. Once verified, it will contribute to the market snapshot for that crop and location.',
+                            )}
                         </AlertDescription>
                     </Alert>
 
                     <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                         <Button onClick={closeDialog}>
-                            Submit another
+                            {t('Submit another')}
                         </Button>
                     </div>
                 </DialogContent>

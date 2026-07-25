@@ -1,14 +1,11 @@
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { StatusBadge, type StatusTone } from '@/components/status-badge';
+import { useTranslations } from '@/hooks/use-translations';
 
-const statusStyles: Record<string, string> = {
-    pending:
-        'border-amber-600/30 bg-amber-500/15 text-amber-800 dark:text-amber-300',
-    verified:
-        'border-emerald-600/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-    disputed:
-        'border-orange-600/30 bg-orange-500/15 text-orange-800 dark:text-orange-300',
-    rejected: 'border-destructive/40 bg-destructive/10 text-destructive',
+const statusTones: Record<string, StatusTone> = {
+    pending: 'warning',
+    verified: 'success',
+    disputed: 'warning',
+    rejected: 'danger',
 };
 
 type ReportStatusBadgeProps = {
@@ -22,13 +19,15 @@ export function ReportStatusBadge({
     statusLabel,
     className,
 }: ReportStatusBadgeProps) {
+    const t = useTranslations();
+
     return (
-        <Badge
-            variant="outline"
-            className={cn(statusStyles[status] ?? '', className)}
-            aria-label={`Status: ${statusLabel}`}
+        <StatusBadge
+            tone={statusTones[status] ?? 'neutral'}
+            className={className}
+            aria-label={t('Status: :status', { status: t(statusLabel) })}
         >
-            {statusLabel}
-        </Badge>
+            {t(statusLabel)}
+        </StatusBadge>
     );
 }

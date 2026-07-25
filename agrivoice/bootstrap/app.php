@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureAgentIsAuthenticated;
 use App\Http\Middleware\EnsureCooperativeAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -28,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust reverse proxies (Railway, Fly, Nginx, Cloudflare) so HTTPS
+        // and client IPs are detected correctly for secure cookies / throttling.
+        $middleware->trustProxies(at: '*');
+
         // Appearance, locale, and sidebar state are stored in non-encrypted
         // cookies so the front-end can read them without CSRF token validation.
         // Encrypting them would cause Inertia to fail on first visit.
@@ -38,16 +43,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // - SetLocale: reads the 'locale' cookie and sets app locale
         // - HandleInertiaRequests: shares flash data, auth, and CSRF with Inertia
         // - AddLinkHeadersForPreloadedAssets: HTTP/2 preload hints for performance
+        // - SecurityHeaders: baseline browser hardening for deployment
         $middleware->web(append: [
             HandleAppearance::class,
             SetLocale::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            SecurityHeaders::class,
         ]);
 
         // 'agent' alias for EnsureAgentIsAuthenticated middleware.
         // Used on portal routes (create, store) to require a signed-in agent.
-        // The public live-list (index) does NOT use this alias.
+        // The farmer live-list (reports.index) uses auth+verified instead.
         $middleware->alias([
             'agent' => EnsureAgentIsAuthenticated::class,
             'cooperative.admin' => EnsureCooperativeAdmin::class,
@@ -57,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // API and AJAX requests get JSON error responses instead of HTML.
         // Inertia sends Accept: application/json on page visits, but the
         // X-Inertia header distinguishes those from pure API calls.
+        // Note: there is no routes/api.php — api/* matches only if added later.
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

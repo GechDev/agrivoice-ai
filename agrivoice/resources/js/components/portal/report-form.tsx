@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { Coffee, Leaf, Sprout, Wheat } from 'lucide-react';
+import { Bean, Coffee, Leaf, Nut, Sprout, Wheat } from 'lucide-react';
 import { type FormEvent, type KeyboardEvent, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -34,9 +34,9 @@ const CROP_ICONS = {
     teff: Wheat,
     coffee: Coffee,
     maize: Leaf,
-    wheat: Wheat,
-    sesame: Sprout,
-    pulses: Sprout,
+    wheat: Sprout,
+    sesame: Nut,
+    pulses: Bean,
     sorghum: Leaf,
 } as const;
 

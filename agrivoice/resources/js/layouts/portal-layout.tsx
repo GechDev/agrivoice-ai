@@ -2,7 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import AppLogoIcon from '@/components/app-logo-icon';
+import AppLogo from '@/components/app-logo';
 import { AppearanceToggle } from '@/components/appearance-toggle';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -37,15 +37,11 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
 
     return (
         <div className="min-h-dvh bg-muted/30">
-            <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md">
+            <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md av-enter-fade">
                 <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-3">
-                        <Link
-                            href="/"
-                            className="inline-flex items-center gap-2 text-lg font-bold tracking-[-0.01em] text-primary"
-                        >
-                            <AppLogoIcon className="size-8 rounded-full" />
-                            {t('AgriVoice')}
+                        <Link href="/" className="inline-flex items-center">
+                            <AppLogo size="md" />
                         </Link>
                         <span aria-hidden className="h-4 w-px bg-border" />
                         <span className="text-sm font-medium text-muted-foreground">
@@ -78,7 +74,7 @@ export default function PortalLayout({ agent, children }: PortalLayoutProps) {
                 </div>
             </header>
 
-            <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+            <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10 av-enter av-delay-1">
                 {children}
             </main>
         </div>

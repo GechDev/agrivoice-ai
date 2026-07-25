@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -10,6 +10,7 @@ import { UserInfo } from '@/components/user-info';
 import { useTranslations } from '@/hooks/use-translations';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
+import { logout as cooperativeLogout } from '@/routes/cooperative';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -20,6 +21,9 @@ type Props = {
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
     const t = useTranslations();
+    const page = usePage();
+    const isCooperativeArea = page.url.startsWith('/cooperative');
+    const logoutHref = isCooperativeArea ? cooperativeLogout() : logout();
 
     const handleLogout = () => {
         cleanup();
@@ -51,7 +55,8 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuItem asChild>
                 <Link
                     className="block w-full cursor-pointer"
-                    href={logout()}
+                    href={logoutHref}
+                    method="post"
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"

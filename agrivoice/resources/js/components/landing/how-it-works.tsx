@@ -7,6 +7,7 @@ import {
     Zap,
 } from 'lucide-react';
 
+import { AnimateIn } from '@/components/motion/animate-in';
 import { useTranslations } from '@/hooks/use-translations';
 
 const steps = [
@@ -61,7 +62,7 @@ export default function HowItWorks() {
             className="scroll-mt-20 bg-background py-24 sm:py-32"
         >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="max-w-2xl">
+                <AnimateIn className="max-w-2xl">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
                         {t('How It Works')}
                     </p>
@@ -73,17 +74,25 @@ export default function HowItWorks() {
                             'Six simple steps. No forms. No guesswork. Just voice and verified market data.',
                         )}
                     </p>
-                </div>
+                </AnimateIn>
 
                 <ol className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-                    {steps.map((step) => {
+                    {steps.map((step, index) => {
                         const Icon = step.icon;
 
                         return (
-                            <li key={step.number} className="relative">
+                            <AnimateIn
+                                key={step.number}
+                                as="li"
+                                index={index}
+                                className="relative"
+                            >
                                 <div className="flex items-center gap-4">
                                     <span className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
-                                        <Icon className="size-5" strokeWidth={1.75} />
+                                        <Icon
+                                            className="size-5"
+                                            strokeWidth={1.75}
+                                        />
                                     </span>
                                     <span className="font-serif text-3xl font-semibold text-primary/25">
                                         {step.number}
@@ -95,7 +104,7 @@ export default function HowItWorks() {
                                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
                                     {t(step.description)}
                                 </p>
-                            </li>
+                            </AnimateIn>
                         );
                     })}
                 </ol>

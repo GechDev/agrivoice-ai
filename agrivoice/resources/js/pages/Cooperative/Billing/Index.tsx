@@ -14,7 +14,10 @@ import {
     updatePaymentMethod,
     updatePlan,
 } from '@/actions/App/Http/Controllers/CooperativeBillingController';
+import { PageSection, StaggerItem } from '@/components/motion/page-section';
 import InputError from '@/components/input-error';
+import { PageHeader } from '@/components/page-header';
+import { TablePagination } from '@/components/table-pagination';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -44,19 +47,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/hooks/use-translations';
+import { formatCurrency } from '@/lib/agrivoice';
 import { dashboard as cooperativeDashboard } from '@/routes/cooperative';
 import type {
     BillingPlan,
     BillingSubscription,
     PaginatedBillingInvoices,
 } from '@/types/cooperative-billing';
-
-const currencyFormatter = new Intl.NumberFormat('en-ET', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-});
 
 const dateFormatter = new Intl.DateTimeFormat('en-ET', {
     dateStyle: 'medium',
@@ -73,6 +79,7 @@ export default function BillingIndex({
     invoices,
     plans,
 }: BillingIndexProps) {
+    const t = useTranslations();
     const [selectedPlan, setSelectedPlan] = useState<BillingPlan | null>(null);
     const [paymentOpen, setPaymentOpen] = useState(false);
     const planForm = useForm({ plan_tier: '' });
@@ -83,8 +90,11 @@ export default function BillingIndex({
 
     setLayoutProps({
         breadcrumbs: [
-            { title: 'Cooperative dashboard', href: cooperativeDashboard() },
-            { title: 'Billing', href: index() },
+            {
+                title: t('Cooperative dashboard'),
+                href: cooperativeDashboard(),
+            },
+            { title: t('Billing'), href: index() },
         ],
     });
 
@@ -128,36 +138,36 @@ export default function BillingIndex({
 
     return (
         <>
-            <Head title="Cooperative billing" />
+            <Head title={t('Cooperative billing')} />
             <div className="flex flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6">
-                <header className="flex flex-col gap-1">
-                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                        Billing
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Manage your cooperative&apos;s plan, invoices, and
-                        payment method.
-                    </p>
-                </header>
+                <PageSection>
+                    <PageHeader
+                        title={t('Billing')}
+                        description={t(
+                            "Manage your cooperative's plan, invoices, and payment method.",
+                        )}
+                    />
+                </PageSection>
 
                 {subscription ? (
                     <>
-                        <section
-                            aria-label="Current subscription"
+                        <PageSection
+                            delay={1}
+                            aria-label={t('Current subscription')}
                             className="grid gap-4 lg:grid-cols-3"
                         >
                             <Card className="lg:col-span-2">
                                 <CardHeader className="flex-row items-start justify-between gap-4">
                                     <div className="flex flex-col gap-1">
                                         <CardDescription>
-                                            Current plan
+                                            {t('Current plan')}
                                         </CardDescription>
                                         <CardTitle className="text-2xl">
-                                            {subscription.planName}
+                                            {t(subscription.planName)}
                                         </CardTitle>
                                     </div>
                                     <Badge variant="secondary">
-                                        {subscription.statusLabel}
+                                        {t(subscription.statusLabel)}
                                     </Badge>
                                 </CardHeader>
                                 <CardContent className="grid gap-5 sm:grid-cols-2">
@@ -170,10 +180,10 @@ export default function BillingIndex({
                                         </div>
                                         <div>
                                             <p className="text-sm text-muted-foreground">
-                                                Monthly price
+                                                {t('Monthly price')}
                                             </p>
                                             <p className="font-semibold">
-                                                {currencyFormatter.format(
+                                                {formatCurrency(
                                                     subscription.pricePerMonth,
                                                 )}
                                             </p>
@@ -188,7 +198,7 @@ export default function BillingIndex({
                                         </div>
                                         <div>
                                             <p className="text-sm text-muted-foreground">
-                                                Renews
+                                                {t('Renews')}
                                             </p>
                                             <p className="font-semibold">
                                                 {dateFormatter.format(
@@ -201,9 +211,12 @@ export default function BillingIndex({
                                     </div>
                                     {subscription.pendingPlanName && (
                                         <p className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm sm:col-span-2">
-                                            {subscription.pendingPlanName} is
-                                            scheduled for the next billing
-                                            cycle.
+                                            {t(
+                                                ':name is scheduled for the next billing cycle.',
+                                                {
+                                                    name: subscription.pendingPlanName,
+                                                },
+                                            )}
                                         </p>
                                     )}
                                 </CardContent>
@@ -212,21 +225,27 @@ export default function BillingIndex({
                             <Card>
                                 <CardHeader>
                                     <CardDescription>
-                                        Member usage
+                                        {t('Member usage')}
                                     </CardDescription>
                                     <CardTitle className="flex items-center gap-2">
                                         <Users
                                             className="size-5 text-primary"
                                             aria-hidden="true"
                                         />
-                                        {subscription.memberCount} of{' '}
-                                        {subscription.memberLimit}
+                                        {t(':count of :limit', {
+                                            count: String(
+                                                subscription.memberCount,
+                                            ),
+                                            limit: String(
+                                                subscription.memberLimit,
+                                            ),
+                                        })}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-2">
                                     <div
                                         role="progressbar"
-                                        aria-label="Members used"
+                                        aria-label={t('Members used')}
                                         aria-valuenow={subscription.memberCount}
                                         aria-valuemin={0}
                                         aria-valuemax={subscription.memberLimit}
@@ -240,21 +259,26 @@ export default function BillingIndex({
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        {subscription.memberLimit -
-                                            subscription.memberCount}{' '}
-                                        member slots remaining
+                                        {t(':count member slots remaining', {
+                                            count: String(
+                                                subscription.memberLimit -
+                                                    subscription.memberCount,
+                                            ),
+                                        })}
                                     </p>
                                 </CardContent>
                             </Card>
-                        </section>
+                        </PageSection>
 
-                        <Card>
+                        <PageSection delay={2}>
+                            <Card>
                             <CardHeader className="flex-row items-start justify-between gap-4">
                                 <div className="flex flex-col gap-1">
-                                    <CardTitle>Payment method</CardTitle>
+                                    <CardTitle>{t('Payment method')}</CardTitle>
                                     <CardDescription>
-                                        Mock billing data only; no real payment
-                                        details are collected.
+                                        {t(
+                                            'Mock billing data only; no real payment details are collected.',
+                                        )}
                                     </CardDescription>
                                 </div>
                                 <CreditCard
@@ -264,8 +288,9 @@ export default function BillingIndex({
                             </CardHeader>
                             <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="font-medium">
-                                    {subscription.paymentMethod.type ??
-                                        'Not configured'}
+                                    {subscription.paymentMethod.type
+                                        ? t(subscription.paymentMethod.type)
+                                        : t('Not configured')}
                                     {subscription.paymentMethod.lastFour
                                         ? ` •••• ${subscription.paymentMethod.lastFour}`
                                         : ''}
@@ -274,23 +299,25 @@ export default function BillingIndex({
                                     variant="outline"
                                     onClick={() => setPaymentOpen(true)}
                                 >
-                                    Update payment method
+                                    {t('Update payment method')}
                                 </Button>
                             </CardContent>
-                        </Card>
+                            </Card>
+                        </PageSection>
 
-                        <section className="flex flex-col gap-3">
+                        <PageSection delay={3} className="flex flex-col gap-3">
                             <div>
                                 <h2 className="text-lg font-semibold">
-                                    Compare plans
+                                    {t('Compare plans')}
                                 </h2>
                                 <p className="text-sm text-muted-foreground">
-                                    Plan changes take effect next billing cycle;
-                                    no proration is applied.
+                                    {t(
+                                        'Plan changes take effect next billing cycle; no proration is applied.',
+                                    )}
                                 </p>
                             </div>
                             <div className="grid gap-4 md:grid-cols-3">
-                                {plans.map((plan) => {
+                                {plans.map((plan, index) => {
                                     const current =
                                         plan.tier === subscription.planTier;
                                     const pending =
@@ -298,18 +325,22 @@ export default function BillingIndex({
                                         subscription.pendingPlanTier;
 
                                     return (
-                                        <Card
+                                        <StaggerItem
                                             key={plan.tier}
-                                            className={
+                                            index={index}
+                                            baseDelay={40}
+                                        >
+                                        <Card
+                                            className={`av-hover-lift ${
                                                 current
                                                     ? 'border-primary/40 bg-primary/5'
                                                     : ''
-                                            }
+                                            }`}
                                         >
                                             <CardHeader>
                                                 <div className="flex items-center justify-between gap-2">
                                                     <CardTitle>
-                                                        {plan.name}
+                                                        {t(plan.name)}
                                                     </CardTitle>
                                                     {(current || pending) && (
                                                         <Badge
@@ -320,16 +351,18 @@ export default function BillingIndex({
                                                             }
                                                         >
                                                             {current
-                                                                ? 'Current'
-                                                                : 'Scheduled'}
+                                                                ? t('Current')
+                                                                : t(
+                                                                      'Scheduled',
+                                                                  )}
                                                         </Badge>
                                                     )}
                                                 </div>
                                                 <CardDescription>
-                                                    {currencyFormatter.format(
+                                                    {formatCurrency(
                                                         plan.pricePerMonth,
                                                     )}
-                                                    /month
+                                                    {t('/month')}
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent className="flex flex-1 flex-col justify-between gap-5">
@@ -338,8 +371,11 @@ export default function BillingIndex({
                                                         className="size-4 text-primary"
                                                         aria-hidden="true"
                                                     />
-                                                    Up to {plan.memberLimit}{' '}
-                                                    members
+                                                    {t('Up to :count members', {
+                                                        count: String(
+                                                            plan.memberLimit,
+                                                        ),
+                                                    })}
                                                 </p>
                                                 <Button
                                                     variant={
@@ -357,45 +393,53 @@ export default function BillingIndex({
                                                     }
                                                 >
                                                     {current
-                                                        ? 'Current plan'
+                                                        ? t('Current plan')
                                                         : pending
-                                                          ? 'Scheduled'
-                                                          : 'Choose plan'}
+                                                          ? t('Scheduled')
+                                                          : t('Choose plan')}
                                                 </Button>
                                             </CardContent>
                                         </Card>
+                                        </StaggerItem>
                                     );
                                 })}
                             </div>
-                        </section>
+                        </PageSection>
                     </>
                 ) : (
-                    <Card>
-                        <CardContent className="py-10 text-center">
-                            <p className="font-semibold">
-                                No subscription configured
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Contact AgriVoice support to activate billing.
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <PageSection delay={1}>
+                        <Card>
+                            <CardContent className="py-10 text-center">
+                                <p className="font-semibold">
+                                    {t('No subscription configured')}
+                                </p>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {t(
+                                        'Contact AgriVoice support to activate billing.',
+                                    )}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </PageSection>
                 )}
 
-                <section className="flex flex-col gap-3">
+                <PageSection delay={4} className="flex flex-col gap-3">
                     <div>
                         <h2 className="text-lg font-semibold">
-                            Invoice history
+                            {t('Invoice history')}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            {invoices.total} billing{' '}
-                            {invoices.total === 1 ? 'record' : 'records'}
+                            {invoices.total}{' '}
+                            {t('billing')}{' '}
+                            {invoices.total === 1
+                                ? t('record')
+                                : t('records')}
                         </p>
                     </div>
                     <Card className="overflow-hidden py-0">
                         {invoices.data.length === 0 ? (
                             <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                                No invoices have been issued yet.
+                                {t('No invoices have been issued yet.')}
                             </CardContent>
                         ) : (
                             <div className="overflow-x-auto">
@@ -406,25 +450,25 @@ export default function BillingIndex({
                                                 scope="col"
                                                 className="px-5 py-4"
                                             >
-                                                Date
+                                                {t('Date')}
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-5 py-4"
                                             >
-                                                Amount
+                                                {t('Amount')}
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-5 py-4"
                                             >
-                                                Status
+                                                {t('Status')}
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-5 py-4 text-right"
                                             >
-                                                PDF
+                                                {t('PDF')}
                                             </th>
                                         </tr>
                                     </thead>
@@ -439,7 +483,7 @@ export default function BillingIndex({
                                                     )}
                                                 </td>
                                                 <td className="px-5 py-4 font-medium">
-                                                    {currencyFormatter.format(
+                                                    {formatCurrency(
                                                         invoice.amount,
                                                     )}
                                                 </td>
@@ -455,7 +499,7 @@ export default function BillingIndex({
                                                                   : 'outline'
                                                         }
                                                     >
-                                                        {invoice.statusLabel}
+                                                        {t(invoice.statusLabel)}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-5 py-4 text-right">
@@ -469,15 +513,20 @@ export default function BillingIndex({
                                                                 href={downloadInvoice.url(
                                                                     invoice.id,
                                                                 )}
-                                                                aria-label={`Download invoice from ${invoice.issuedAt}`}
+                                                                aria-label={t(
+                                                                    'Download invoice from :date',
+                                                                    {
+                                                                        date: invoice.issuedAt,
+                                                                    },
+                                                                )}
                                                             >
                                                                 <Download aria-hidden="true" />
-                                                                Download
+                                                                {t('Download')}
                                                             </a>
                                                         </Button>
                                                     ) : (
                                                         <span className="text-xs text-muted-foreground">
-                                                            Unavailable
+                                                            {t('Unavailable')}
                                                         </span>
                                                     )}
                                                 </td>
@@ -489,54 +538,53 @@ export default function BillingIndex({
                         )}
                     </Card>
                     {invoices.last_page > 1 && (
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm text-muted-foreground">
-                                Page {invoices.current_page} of{' '}
-                                {invoices.last_page}
-                            </p>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    disabled={!invoices.prev_page_url}
-                                    onClick={() =>
-                                        router.get(
-                                            index.url({
-                                                query: {
-                                                    page:
-                                                        invoices.current_page -
-                                                        1,
-                                                },
-                                            }),
-                                            {},
-                                            { preserveScroll: true },
-                                        )
-                                    }
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    disabled={!invoices.next_page_url}
-                                    onClick={() =>
-                                        router.get(
-                                            index.url({
-                                                query: {
-                                                    page:
-                                                        invoices.current_page +
-                                                        1,
-                                                },
-                                            }),
-                                            {},
-                                            { preserveScroll: true },
-                                        )
-                                    }
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
+                        <TablePagination
+                            from={
+                                invoices.total === 0
+                                    ? null
+                                    : (invoices.current_page - 1) *
+                                          invoices.per_page +
+                                      1
+                            }
+                            to={
+                                invoices.total === 0
+                                    ? null
+                                    : Math.min(
+                                          invoices.current_page *
+                                              invoices.per_page,
+                                          invoices.total,
+                                      )
+                            }
+                            total={invoices.total}
+                            currentPage={invoices.current_page}
+                            lastPage={invoices.last_page}
+                            hasPrevious={Boolean(invoices.prev_page_url)}
+                            hasNext={Boolean(invoices.next_page_url)}
+                            onPrevious={() =>
+                                router.get(
+                                    index.url({
+                                        query: {
+                                            page: invoices.current_page - 1,
+                                        },
+                                    }),
+                                    {},
+                                    { preserveScroll: true },
+                                )
+                            }
+                            onNext={() =>
+                                router.get(
+                                    index.url({
+                                        query: {
+                                            page: invoices.current_page + 1,
+                                        },
+                                    }),
+                                    {},
+                                    { preserveScroll: true },
+                                )
+                            }
+                        />
                     )}
-                </section>
+                </PageSection>
             </div>
 
             <AlertDialog
@@ -546,22 +594,29 @@ export default function BillingIndex({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Switch to {selectedPlan?.name}?
+                            {t('Switch to :name?', {
+                                name: selectedPlan?.name ?? '',
+                            })}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            The change will take effect on{' '}
-                            {subscription
-                                ? dateFormatter.format(
-                                      new Date(subscription.renewalDate),
-                                  )
-                                : 'the next billing date'}
-                            . There is no proration.
+                            {t(
+                                'The change will take effect on :date. There is no proration.',
+                                {
+                                    date: subscription
+                                        ? dateFormatter.format(
+                                              new Date(
+                                                  subscription.renewalDate,
+                                              ),
+                                          )
+                                        : t('the next billing date'),
+                                },
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <InputError message={planForm.errors.plan_tier} />
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={planForm.processing}>
-                            Cancel
+                            {t('Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={(event) => {
@@ -570,7 +625,9 @@ export default function BillingIndex({
                             }}
                             disabled={planForm.processing}
                         >
-                            {planForm.processing ? 'Scheduling…' : 'Confirm'}
+                            {planForm.processing
+                                ? t('Scheduling…')
+                                : t('Confirm')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -579,10 +636,13 @@ export default function BillingIndex({
             <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Update mock payment method</DialogTitle>
+                        <DialogTitle>
+                            {t('Update mock payment method')}
+                        </DialogTitle>
                         <DialogDescription>
-                            This stores display-only test data. Do not enter
-                            real payment credentials.
+                            {t(
+                                'This stores display-only test data. Do not enter real payment credentials.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <form
@@ -590,28 +650,41 @@ export default function BillingIndex({
                         className="flex flex-col gap-4"
                     >
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="payment-type">Method type</Label>
-                            <select
-                                id="payment-type"
+                            <Label htmlFor="payment-type">
+                                {t('Method type')}
+                            </Label>
+                            <Select
                                 value={paymentForm.data.type}
-                                onChange={(event) =>
-                                    paymentForm.setData(
-                                        'type',
-                                        event.target.value,
-                                    )
+                                onValueChange={(value) =>
+                                    paymentForm.setData('type', value)
                                 }
-                                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                                 disabled={paymentForm.processing}
                             >
-                                <option>Telebirr</option>
-                                <option>Bank transfer</option>
-                                <option>Chapa test</option>
-                            </select>
+                                <SelectTrigger
+                                    id="payment-type"
+                                    className="w-full"
+                                >
+                                    <SelectValue
+                                        placeholder={t('Method type')}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Telebirr">
+                                        {t('Telebirr')}
+                                    </SelectItem>
+                                    <SelectItem value="Bank transfer">
+                                        {t('Bank transfer')}
+                                    </SelectItem>
+                                    <SelectItem value="Chapa test">
+                                        {t('Chapa test')}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError message={paymentForm.errors.type} />
                         </div>
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="payment-last-four">
-                                Last four display digits
+                                {t('Last four display digits')}
                             </Label>
                             <Input
                                 id="payment-last-four"
@@ -641,14 +714,14 @@ export default function BillingIndex({
                                 onClick={() => setPaymentOpen(false)}
                                 disabled={paymentForm.processing}
                             >
-                                Cancel
+                                {t('Cancel')}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={paymentForm.processing}
                             >
                                 {paymentForm.processing && <Spinner />}
-                                Save mock method
+                                {t('Save mock method')}
                             </Button>
                         </DialogFooter>
                     </form>

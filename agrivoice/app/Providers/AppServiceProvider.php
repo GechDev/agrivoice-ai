@@ -4,9 +4,15 @@ namespace App\Providers;
 
 use App\Services\AgentSession;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\DevCommands;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 /**
@@ -38,6 +44,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureRateLimiting();
+        $this->configureDevCommands();
+    }
+
+    /**
+     * Keep Laravel + Vite on the same IPv4 loopback host so asset URLs
+     * never split between localhost (::1) and 127.0.0.1.
+     */
+    protected function configureDevCommands(): void
+    {
+        DevCommands::artisan('serve --host=127.0.0.1 --port=8000', 'server');
     }
 
     /**
@@ -57,6 +74,17 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
+        // Force HTTPS URLs in production so cookies, signed links, and
+        // redirects never leak http:// behind a TLS-terminating proxy.
+        if ($this->app->isProduction()) {
+            URL::forceScheme('https');
+
+            // Secure cookies when unset — deployers can still override via .env.
+            if (config('session.secure') === null) {
+                config(['session.secure' => true]);
+            }
+        }
+
         // Password rules: relaxed in development (any password works),
         // strict in production (12+ chars, mixed case, symbols, etc.).
         // The agent PIN system doesn't use Fortify passwords — this
@@ -70,5 +98,25 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Named rate limiters for public and guest write endpoints.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('public-report', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        RateLimiter::for('cooperative-login', function (Request $request) {
+            $email = Str::lower((string) $request->input('email'));
+
+            return Limit::perMinute(5)->by($email.'|'.$request->ip());
+        });
+
+        RateLimiter::for('cooperative-register', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 }

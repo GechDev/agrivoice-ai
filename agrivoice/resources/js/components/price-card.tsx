@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from '@/hooks/use-translations';
-import { cropLabel, marketLabel } from '@/lib/agrivoice';
+import { cropLabel, formatPrice, marketLabel } from '@/lib/agrivoice';
 import { cn } from '@/lib/utils';
 import type { PriceSnapshot } from '@/types';
 
@@ -19,18 +19,6 @@ const TREND_META: Record<
     down: { arrow: '↓', className: 'text-destructive', label: 'Falling' },
     stable: { arrow: '→', className: 'text-muted-foreground', label: 'Stable' },
 };
-
-/**
- * Format a price for display in the card.
- *
- * Uses en-ET locale for Ethiopian number formatting (no decimals,
- * thousands separators). Example: 8600 → "8,600"
- */
-function formatPrice(price: number): string {
-    return new Intl.NumberFormat('en-ET', {
-        maximumFractionDigits: 0,
-    }).format(price);
-}
 
 /**
  * Format the "last updated" timestamp as a human-readable relative time.
@@ -116,7 +104,7 @@ export function PriceCard({ snapshot }: { snapshot: PriceSnapshot }) {
     return (
         <article
             className={cn(
-                'flex flex-col gap-4 rounded-[1.5rem] border border-border/80 bg-card p-5 shadow-sm transition-all duration-500 hover:border-primary/25 hover:shadow-md',
+                'av-hover-lift flex flex-col gap-4 rounded-[1.5rem] border border-border/80 bg-card p-5 shadow-sm transition-all duration-500 hover:border-primary/25',
                 lowConfidence && 'opacity-75',
                 flash &&
                     'scale-[1.015] border-primary bg-accent ring-2 ring-primary/30',

@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/hooks/use-translations';
 import type { PaginatedMembers } from '@/types/cooperative-members';
 
 type InviteMemberDialogProps = {
@@ -26,6 +27,7 @@ export function InviteMemberDialog({
     open,
     onOpenChange,
 }: InviteMemberDialogProps) {
+    const t = useTranslations();
     const form = useForm({
         name: '',
         phone_number: '',
@@ -82,7 +84,7 @@ export function InviteMemberDialog({
             onError: (errors) => {
                 if (!errors.name && !errors.phone_number) {
                     toast.error(
-                        'Could not invite this member. Please try again.',
+                        t('Could not invite this member. Please try again.'),
                     );
                 }
             },
@@ -93,14 +95,16 @@ export function InviteMemberDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Invite member</DialogTitle>
+                    <DialogTitle>{t('Invite member')}</DialogTitle>
                     <DialogDescription>
-                        Send an invite by name and Ethiopian mobile number.
+                        {t(
+                            'Send an invite by name and Ethiopian mobile number.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="invite-name">Name</Label>
+                        <Label htmlFor="invite-name">{t('Name')}</Label>
                         <Input
                             id="invite-name"
                             value={form.data.name}
@@ -114,7 +118,7 @@ export function InviteMemberDialog({
                         <InputError message={form.errors.name} />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="invite-phone">Phone number</Label>
+                        <Label htmlFor="invite-phone">{t('Phone number')}</Label>
                         <Input
                             id="invite-phone"
                             type="tel"
@@ -132,8 +136,9 @@ export function InviteMemberDialog({
                             id="invite-phone-help"
                             className="text-xs text-muted-foreground"
                         >
-                            Ethiopian mobiles: 09…, 07…, or +251… (spaces and
-                            hyphens are fine).
+                            {t(
+                                'Ethiopian mobiles: 09…, 07…, or +251… (spaces and hyphens are fine).',
+                            )}
                         </p>
                         <InputError message={form.errors.phone_number} />
                     </div>
@@ -144,16 +149,16 @@ export function InviteMemberDialog({
                             onClick={() => handleOpenChange(false)}
                             disabled={form.processing}
                         >
-                            Cancel
+                            {t('Cancel')}
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             {form.processing ? (
                                 <>
                                     <Spinner />
-                                    Inviting…
+                                    {t('Inviting…')}
                                 </>
                             ) : (
-                                'Send invite'
+                                t('Send invite')
                             )}
                         </Button>
                     </DialogFooter>

@@ -26,7 +26,11 @@ const CROP_ICONS = {
     sorghum: Leaf,
 } as const;
 
-function wasJustCreated(createdAt: string): boolean {
+function wasJustCreated(createdAt: string | null): boolean {
+    if (createdAt === null) {
+        return false;
+    }
+
     return Date.now() - new Date(createdAt).getTime() < HIGHLIGHT_WINDOW_MS;
 }
 
@@ -110,7 +114,7 @@ export default function ReportRow({ report, action }: ReportRowProps) {
                             {formatPrice(report.price)}
                         </p>
                         <p className="text-[0.6875rem] text-muted-foreground">
-                            {t('ETB/qt')} · {formatTimeAgo(report.createdAt, t)}
+                            {t('ETB/q')} · {formatTimeAgo(report.createdAt, t)}
                         </p>
                     </div>
 

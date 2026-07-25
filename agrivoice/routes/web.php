@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CooperativeAuthController;
 use App\Http\Controllers\CooperativeBillingController;
 use App\Http\Controllers\CooperativeDashboardController;
 use App\Http\Controllers\CooperativeMemberController;
@@ -21,12 +22,31 @@ Route::get('/language/{locale}', function (string $locale) {
     }
 
     return Redirect::back();
-})->name('language.switch');
+})->middleware('throttle:60,1')->name('language.switch');
+
+// Public showcase surfaces — projector dashboard + live feed must work without login.
+Route::get('/dashboard', DashboardController::class)->name('dashboard');
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+Route::middleware('guest')->prefix('cooperative')->name('cooperative.')->group(function () {
+    Route::get('/login', [CooperativeAuthController::class, 'createLogin'])->name('login');
+    Route::post('/login', [CooperativeAuthController::class, 'login'])
+        ->middleware('throttle:cooperative-login')
+        ->name('login.store');
+    Route::get('/register', [CooperativeAuthController::class, 'createRegister'])->name('register');
+    Route::post('/register', [CooperativeAuthController::class, 'register'])
+        ->middleware('throttle:cooperative-register')
+        ->name('register.store');
+});
+
+Route::post('/cooperative/logout', [CooperativeAuthController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('cooperative.logout');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::post('/reports/{report}/flag', [ReportController::class, 'flag'])->name('reports.flag');
+    Route::post('/reports/{report}/flag', [ReportController::class, 'flag'])
+        ->middleware('throttle:20,1')
+        ->name('reports.flag');
 
     Route::middleware('cooperative.admin')->prefix('cooperative')->name('cooperative.')->group(function () {
         Route::get('/dashboard', CooperativeDashboardController::class)->name('dashboard');
@@ -55,4 +75,6 @@ require __DIR__.'/portal.php';
 require __DIR__.'/settings.php';
 
 Route::get('/report-price', [PublicReportController::class, 'create'])->name('report-price');
-Route::post('/report-price', [PublicReportController::class, 'store'])->name('report-price.store');
+Route::post('/report-price', [PublicReportController::class, 'store'])
+    ->middleware('throttle:public-report')
+    ->name('report-price.store');

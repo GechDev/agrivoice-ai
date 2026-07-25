@@ -1,5 +1,7 @@
 import { Head, setLayoutProps, usePoll } from '@inertiajs/react';
 import { MarketMap } from '@/components/market-map';
+import { PageSection, StaggerItem } from '@/components/motion/page-section';
+import { PageHeader } from '@/components/page-header';
 import { PriceCard } from '@/components/price-card';
 import { TrendChart } from '@/components/trend-chart';
 import { useTranslations } from '@/hooks/use-translations';
@@ -70,52 +72,44 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
         <>
             <Head title={t('Dashboard')} />
             <div className="flex flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                {/* Hero header with live indicator and radial gradient */}
-                <header className="relative overflow-hidden rounded-[1.75rem] border border-border bg-zinc-950 px-6 py-7 text-zinc-50 shadow-lg">
-                    <div
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,_var(--primary)_0%,_transparent_40%)] opacity-20"
-                    />
-                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-zinc-200">
+                <PageSection>
+                    <PageHeader
+                        tone="inverse"
+                        title={t('Live market prices')}
+                        description={t(
+                            'Crowd-backed ETB/quintal · updates every 2.5s · teff, coffee, maize, wheat, sesame, pulses & sorghum across Adama, Addis Ababa, and Jimma',
+                        )}
+                        actions={
+                            <span className="inline-flex items-center gap-2 rounded-full bg-background/10 px-3 py-1 text-xs font-medium tracking-wide text-background/80">
                                 <span className="size-1.5 animate-pulse rounded-full bg-primary" />
                                 {t('Live')}
-                            </div>
-                            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
-                                {t('Live market prices')}
-                            </h1>
-                            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
-                                {t(
-                                    'Crowd-backed ETB/quintal · updates every 2.5s · teff, coffee, maize, wheat, sesame, pulses & sorghum across Adama, Addis Ababa, and Jimma',
-                                )}
-                            </p>
-                        </div>
-                    </div>
-                </header>
+                            </span>
+                        }
+                    />
+                </PageSection>
 
-                {/* Price tile grid — responsive: 1 col mobile, 2 col sm, 3 col xl */}
                 <section
                     aria-label={t('Price snapshots')}
                     className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
                 >
-                    {ordered.map((snapshot) => (
-                        <PriceCard
+                    {ordered.map((snapshot, index) => (
+                        <StaggerItem
                             key={`${snapshot.crop}-${snapshot.market}`}
-                            snapshot={snapshot}
-                        />
+                            index={index}
+                        >
+                            <PriceCard snapshot={snapshot} />
+                        </StaggerItem>
                     ))}
                 </section>
 
-                {/* Map (3/5 width) + Trend chart (2/5 width) */}
-                <section className="grid gap-4 lg:grid-cols-5">
+                <PageSection delay={3} className="grid gap-4 lg:grid-cols-5">
                     <div className="lg:col-span-3">
                         <MarketMap markets={markets} snapshots={snapshots} />
                     </div>
                     <div className="lg:col-span-2">
                         <TrendChart snapshots={ordered} />
                     </div>
-                </section>
+                </PageSection>
             </div>
         </>
     );

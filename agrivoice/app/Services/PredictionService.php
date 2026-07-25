@@ -6,6 +6,7 @@ use App\Enums\Crop;
 use App\Enums\Trend;
 use App\Models\Market;
 use App\Models\Report;
+use Illuminate\Support\Collection;
 
 /**
  * Determines the price trend direction for a crop-market pair.
@@ -50,7 +51,46 @@ class PredictionService
         // Previous period: 7 days before that (baseline for comparison)
         $previousAvg = $this->averagePrice($crop, $market, now()->subDays(14), now()->subDays(7));
 
-        // If either period has no data, we can't compute a trend
+        return $this->classify($recentAvg, $previousAvg);
+    }
+
+    /**
+     * Same trend heuristic as trend(), computed from an in-memory report set.
+     * Used by SnapshotService::all() to avoid 42 extra SQL queries per poll.
+     *
+     * @param  Collection<int, Report>  $reports  Verified, unflagged reports for one crop×market (≤14 days)
+     * @return array{trend: Trend, changePercent: float|null}
+     */
+    public function trendFromReports(Collection $reports): array
+    {
+        $now = now();
+        $recentStart = $now->copy()->subDays(7);
+        $previousStart = $now->copy()->subDays(14);
+
+        $recentAvg = $this->averageFromCollection(
+            $reports->filter(
+                fn (Report $report): bool => $report->reported_at !== null
+                    && $report->reported_at->gte($recentStart)
+                    && $report->reported_at->lte($now),
+            ),
+        );
+
+        $previousAvg = $this->averageFromCollection(
+            $reports->filter(
+                fn (Report $report): bool => $report->reported_at !== null
+                    && $report->reported_at->gte($previousStart)
+                    && $report->reported_at->lt($recentStart),
+            ),
+        );
+
+        return $this->classify($recentAvg, $previousAvg);
+    }
+
+    /**
+     * @return array{trend: Trend, changePercent: float|null}
+     */
+    private function classify(?float $recentAvg, ?float $previousAvg): array
+    {
         if ($recentAvg === null || $previousAvg === null || $previousAvg <= 0.0) {
             return [
                 'trend' => Trend::Stable,
@@ -58,10 +98,8 @@ class PredictionService
             ];
         }
 
-        // Percentage change: positive = price went up, negative = price went down
         $changePercent = round((($recentAvg - $previousAvg) / $previousAvg) * 100, 1);
 
-        // Classify into trend buckets using the 2% threshold
         $trend = match (true) {
             $changePercent >= self::STABLE_THRESHOLD_PERCENT => Trend::Up,
             $changePercent <= -self::STABLE_THRESHOLD_PERCENT => Trend::Down,
@@ -72,6 +110,18 @@ class PredictionService
             'trend' => $trend,
             'changePercent' => $changePercent,
         ];
+    }
+
+    /**
+     * @param  Collection<int, Report>  $reports
+     */
+    private function averageFromCollection(Collection $reports): ?float
+    {
+        if ($reports->isEmpty()) {
+            return null;
+        }
+
+        return (float) $reports->avg(fn (Report $report): float => (float) $report->price);
     }
 
     /**

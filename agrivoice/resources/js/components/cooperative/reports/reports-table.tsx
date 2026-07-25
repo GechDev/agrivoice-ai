@@ -7,6 +7,8 @@ import { ReportAuditTrail } from '@/components/cooperative/reports/report-audit-
 import { ReportStatusBadge } from '@/components/cooperative/reports/report-status-badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from '@/hooks/use-translations';
+import { formatCurrency } from '@/lib/agrivoice';
 import { cn } from '@/lib/utils';
 import type {
     CooperativeReportRow,
@@ -18,18 +20,8 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
     timeStyle: 'short',
 });
 
-const priceFormatter = new Intl.NumberFormat('en-ET', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-});
-
 function formatDate(value: string): string {
     return dateFormatter.format(new Date(value));
-}
-
-function formatPrice(price: number): string {
-    return priceFormatter.format(price);
 }
 
 type ReportsTableProps = {
@@ -79,9 +71,11 @@ type ReportRowProps = {
 };
 
 function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
+    const t = useTranslations();
     const [trailOpen, setTrailOpen] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const isVerified = report.status === 'verified';
+    const reporterName = report.reporter.name || t('reporter');
 
     const verifyReport = (): void => {
         if (isVerified || verifying) {
@@ -124,7 +118,9 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                     onError: (errors) => {
                         if (!errors.status && !errors.reason) {
                             toast.error(
-                                'Could not verify this report. Please try again.',
+                                t(
+                                    'Could not verify this report. Please try again.',
+                                ),
                             );
                         } else if (errors.status) {
                             toast.error(errors.status);
@@ -138,17 +134,17 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
         <>
             <tr className="border-b last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3 font-medium text-foreground">
-                    {report.cropLabel}
+                    {t(report.cropLabel)}
                 </td>
                 <td className="px-4 py-3 text-foreground">
                     {report.marketLabel}
                 </td>
                 <td className="px-4 py-3 text-foreground tabular-nums">
-                    {formatPrice(report.price)}
+                    {formatCurrency(report.price)}
                 </td>
                 <td className="px-4 py-3">
                     <span className="font-medium text-foreground">
-                        {report.reporter.name || 'Unknown'}
+                        {report.reporter.name || t('Unknown')}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
                         {report.reporter.phoneNumber || '—'}
@@ -173,12 +169,21 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                             onClick={verifyReport}
                             aria-label={
                                 isVerified
-                                    ? `${report.cropLabel} report is already verified`
-                                    : `Verify ${report.cropLabel} report from ${report.reporter.name || 'reporter'}`
+                                    ? t(
+                                          ':crop report is already verified',
+                                          { crop: report.cropLabel },
+                                      )
+                                    : t(
+                                          'Verify :crop report from :name',
+                                          {
+                                              crop: report.cropLabel,
+                                              name: reporterName,
+                                          },
+                                      )
                             }
                         >
                             <ShieldCheck aria-hidden="true" />
-                            Verify
+                            {t('Verify')}
                         </Button>
                         <Button
                             type="button"
@@ -186,10 +191,16 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                             size="sm"
                             disabled={report.status === 'disputed'}
                             onClick={() => onDispute(report)}
-                            aria-label={`Dispute ${report.cropLabel} report from ${report.reporter.name || 'reporter'}`}
+                            aria-label={t(
+                                'Dispute :crop report from :name',
+                                {
+                                    crop: report.cropLabel,
+                                    name: reporterName,
+                                },
+                            )}
                         >
                             <ShieldAlert aria-hidden="true" />
-                            Dispute
+                            {t('Dispute')}
                         </Button>
                         <Button
                             type="button"
@@ -197,10 +208,16 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                             size="sm"
                             disabled={report.status === 'rejected'}
                             onClick={() => onReject(report)}
-                            aria-label={`Reject ${report.cropLabel} report from ${report.reporter.name || 'reporter'}`}
+                            aria-label={t(
+                                'Reject :crop report from :name',
+                                {
+                                    crop: report.cropLabel,
+                                    name: reporterName,
+                                },
+                            )}
                         >
                             <ShieldX aria-hidden="true" />
-                            Reject
+                            {t('Reject')}
                         </Button>
                         <Button
                             type="button"
@@ -211,8 +228,14 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                             onClick={() => setTrailOpen((open) => !open)}
                             aria-label={
                                 trailOpen
-                                    ? `Hide audit trail for ${report.cropLabel} report`
-                                    : `Show audit trail for ${report.cropLabel} report`
+                                    ? t(
+                                          'Hide audit trail for :crop report',
+                                          { crop: report.cropLabel },
+                                      )
+                                    : t(
+                                          'Show audit trail for :crop report',
+                                          { crop: report.cropLabel },
+                                      )
                             }
                         >
                             <ChevronDown
@@ -222,7 +245,7 @@ function ReportRow({ report, onDispute, onReject }: ReportRowProps) {
                                     trailOpen && 'rotate-180',
                                 )}
                             />
-                            Audit
+                            {t('Audit')}
                         </Button>
                     </div>
                 </td>
@@ -247,31 +270,33 @@ export function ReportsTable({
     onDispute,
     onReject,
 }: ReportsTableProps) {
+    const t = useTranslations();
+
     return (
         <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
             <table className="w-full min-w-[52rem] text-left text-sm md:min-w-full">
                 <thead className="border-b bg-muted/40">
                     <tr>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Crop
+                            {t('Crop')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Market
+                            {t('Market')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Price (ETB)
+                            {t('Price (ETB)')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Reporter
+                            {t('Reporter')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Submitted
+                            {t('Submitted')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Status
+                            {t('Status')}
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                            Actions
+                            {t('Actions')}
                         </th>
                     </tr>
                 </thead>
@@ -285,11 +310,12 @@ export function ReportsTable({
                                 className="px-4 py-16 text-center text-muted-foreground"
                             >
                                 <p className="font-medium text-foreground">
-                                    No reports found
+                                    {t('No reports found')}
                                 </p>
                                 <p className="mt-1 text-sm">
-                                    Try adjusting crop, market, status, or date
-                                    filters.
+                                    {t(
+                                        'Try adjusting crop, market, status, or date filters.',
+                                    )}
                                 </p>
                             </td>
                         </tr>

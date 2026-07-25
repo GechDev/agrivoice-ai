@@ -8,8 +8,18 @@ use App\Models\Report;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('guests are redirected away from the dashboard', function () {
-    $this->get(route('dashboard'))->assertRedirect(route('login'));
+test('guests can visit the public live dashboard', function () {
+    Market::factory()->adama()->create();
+    Market::factory()->addisAbaba()->create();
+    Market::factory()->jimma()->create();
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->has('snapshots', 21)
+            ->has('markets', 3)
+        );
 });
 
 test('authenticated users see twenty-one snapshots and three markets', function () {

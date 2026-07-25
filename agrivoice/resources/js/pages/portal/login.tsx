@@ -1,9 +1,30 @@
+/**
+ * Agent sign-in page — the entry point for crowd-sourced price collection.
+ *
+ * This is a standalone page (bypasses the main app shell) with a split layout:
+ * the left BrandPanel is a dark hero that explains the crowd-data loop, and the
+ * right side holds the sign-in form.
+ *
+ * Auth flow:
+ * 1. Server sends `agentNames` — the list of seeded Agent names for the picker.
+ * 2. Agent taps their name (or types it if the list is empty).
+ * 3. Agent enters a 4-digit PIN via the OTP input.
+ * 4. POST /portal/login → AgentAuthController::store validates name+PIN,
+ *    stores the Agent ID in the session, and redirects to /portal.
+ * 5. On error, the PIN is cleared so the agent can retry without manual deletion.
+ *
+ * The 4-digit PIN is intentionally weak — this is a demo/hackathon showcase, not
+ * a production auth system. The vague error message ("Invalid credentials") avoids
+ * leaking whether the name or PIN was wrong.
+ */
 import { Head, useForm } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { ArrowRight } from 'lucide-react';
 import { useRef } from 'react';
 
 import { AppearanceToggle } from '@/components/appearance-toggle';
+import AppLogo from '@/components/app-logo';
+import AppLogoIcon from '@/components/app-logo-icon';
 import InputError from '@/components/input-error';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -19,8 +40,14 @@ import { useInitials } from '@/hooks/use-initials';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
+/** Number of digits in the agent PIN — matches the backend validation. */
 const PIN_LENGTH = 4;
 
+/**
+ * Onboarding steps displayed in the BrandPanel's vertical timeline.
+ * Explains the crowd-data loop to first-time agents: collect → aggregate → display.
+ * Each step maps to a real system component (ReportEntryService → SnapshotService → dashboard).
+ */
 const LOOP_STEPS = [
     {
         title: 'An agent records a real sale',
@@ -50,10 +77,14 @@ export default function PortalLogin({ agentNames }: LoginProps) {
         pin: '',
     });
 
+    /** Submit credentials to POST /portal/login. On failure, clear the PIN
+     *  so the agent doesn't have to manually delete a wrong entry. */
     const submit = (): void => {
         post('/portal/login', { onError: () => setData('pin', '') });
     };
 
+    /** Select an agent from the picker grid, clear any prior errors,
+     *  and auto-focus the PIN input for quick entry. */
     const selectAgent = (name: string): void => {
         setData('name', name);
         clearErrors();
@@ -73,9 +104,9 @@ export default function PortalLogin({ agentNames }: LoginProps) {
                     <LanguageSwitcher />
                 </div>
                 <div className="w-full max-w-sm">
-                    <p className="text-lg font-bold tracking-[-0.01em] text-primary lg:hidden">
-                        {t('AgriVoice')}
-                    </p>
+                    <div className="lg:hidden">
+                        <AppLogo size="md" />
+                    </div>
 
                     <div className="mt-6 lg:mt-0">
                         <h2 className="text-2xl font-semibold tracking-[-0.01em]">
@@ -201,11 +232,17 @@ export default function PortalLogin({ agentNames }: LoginProps) {
     );
 }
 
+/**
+ * Dark hero panel shown on the left side of the login page (desktop only).
+ * Explains the AgriVoice value proposition and walks the agent through the
+ * crowd-data loop. Includes the logo, tagline, onboarding timeline, and a
+ * summary of tracked crops and markets.
+ */
 function BrandPanel() {
     const t = useTranslations();
 
     return (
-        <div className="relative hidden overflow-hidden bg-zinc-950 p-10 text-zinc-50 lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <div className="relative hidden overflow-hidden bg-foreground p-10 text-background lg:flex lg:flex-col lg:justify-between xl:p-14">
             <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,_var(--primary)_0%,_transparent_45%)] opacity-20"
@@ -221,13 +258,21 @@ function BrandPanel() {
             />
 
             <div className="relative">
-                <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
-                    {t('AgriVoice field network')}
-                </p>
-                <h1 className="mt-5 max-w-md font-serif text-4xl leading-[1.1] font-semibold tracking-[-0.02em] xl:text-[2.75rem]">
+                <div className="flex items-center gap-3">
+                    <AppLogoIcon className="size-12 rounded-full ring-1 ring-white/25" />
+                    <div>
+                        <p className="text-lg font-semibold tracking-tight">
+                            {t('AgriVoice')}
+                        </p>
+                        <p className="text-xs font-semibold tracking-widest text-background/55 uppercase">
+                            {t('AgriVoice field network')}
+                        </p>
+                    </div>
+                </div>
+                <h1 className="mt-8 max-w-md font-serif text-4xl leading-[1.1] font-semibold tracking-[-0.02em] xl:text-[2.75rem]">
                     {t('Every price has a name behind it.')}
                 </h1>
-                <p className="mt-5 max-w-md leading-relaxed text-zinc-400">
+                <p className="mt-5 max-w-md leading-relaxed text-background/60">
                     {t(
                         'Market gossip is anonymous and stale. A reported sale is signed, timed and comparable — that is the difference this portal exists to create.',
                     )}
@@ -250,7 +295,7 @@ function BrandPanel() {
                         </div>
                         <div className="pb-1">
                             <p className="font-semibold">{t(step.title)}</p>
-                            <p className="mt-1 max-w-sm text-sm leading-relaxed text-zinc-400">
+                            <p className="mt-1 max-w-sm text-sm leading-relaxed text-background/60">
                                 {t(step.body)}
                             </p>
                         </div>
@@ -259,7 +304,7 @@ function BrandPanel() {
             </ol>
 
             <div className="relative mt-14 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/15 pt-6 text-sm">
-                <span className="text-zinc-500">{t('Tracking')}</span>
+                <span className="text-background/45">{t('Tracking')}</span>
                 <span className="font-medium">
                     {[
                         'Teff',

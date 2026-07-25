@@ -1,3 +1,21 @@
+/**
+ * Agent data-entry page — the primary screen for crowd-sourced price collection.
+ *
+ * Two-column layout on desktop: the left column holds the ReportForm (crop,
+ * market, price, reporter type, date), and the right column shows the agent's
+ * most recent submissions as a sticky sidebar. This gives immediate visual
+ * feedback that each saved report joins the live market picture.
+ *
+ * Server-side props:
+ * - `agent`: the currently authenticated Agent (from AgentSession middleware)
+ * - `markets`: all MarketOption records for the form's market picker
+ * - `recentReports`: the agent's own last ~20 reports, newest first
+ * - `entriesToday`: count of reports this agent filed today (used for the stat bar)
+ *
+ * Polling is intentionally omitted here — the agent just submitted data and
+ * doesn't need a live update of their own entries. The dashboard and live list
+ * poll independently.
+ */
 import { Head } from '@inertiajs/react';
 import { Inbox } from 'lucide-react';
 
@@ -29,6 +47,7 @@ export default function Entry({
     entriesToday,
 }: EntryProps) {
     const t = useTranslations();
+    /** Most recent entry — used to display the "Last entry" relative timestamp. */
     const lastEntry = recentReports[0];
 
     return (
@@ -121,6 +140,10 @@ export default function Entry({
     );
 }
 
+/**
+ * Minimal stat tile used in the header bar (entries today, last entry time).
+ * Renders a definition-list pair (<dt>/<dd>) inside a bordered container.
+ */
 function Stat({ label, value }: { label: string; value: string }) {
     return (
         <div className="px-5 py-3">

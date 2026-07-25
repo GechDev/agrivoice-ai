@@ -9,17 +9,13 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { useTranslations } from '@/hooks/use-translations';
+import { formatCurrency } from '@/lib/agrivoice';
 import type { SelectedMember } from '@/types/cooperative-members';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-});
-
-const priceFormatter = new Intl.NumberFormat('en-ET', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
 });
 
 function formatDate(value: string): string {
@@ -37,6 +33,8 @@ export function MemberDetailSheet({
     open,
     onOpenChange,
 }: MemberDetailSheetProps) {
+    const t = useTranslations();
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
@@ -64,11 +62,11 @@ export function MemberDetailSheet({
                                     id="member-stats-heading"
                                     className="col-span-2 text-sm font-semibold"
                                 >
-                                    Activity
+                                    {t('Activity')}
                                 </h2>
                                 <div className="rounded-xl border bg-card p-3 shadow-sm">
                                     <p className="text-xs text-muted-foreground">
-                                        Queries
+                                        {t('Queries')}
                                     </p>
                                     <p className="text-xl font-semibold tabular-nums">
                                         {member.queriesCount}
@@ -76,7 +74,7 @@ export function MemberDetailSheet({
                                 </div>
                                 <div className="rounded-xl border bg-card p-3 shadow-sm">
                                     <p className="text-xs text-muted-foreground">
-                                        Reports
+                                        {t('Reports')}
                                     </p>
                                     <p className="text-xl font-semibold tabular-nums">
                                         {member.totalReports}
@@ -84,7 +82,7 @@ export function MemberDetailSheet({
                                 </div>
                                 <div className="col-span-2 rounded-xl border bg-card p-3 shadow-sm">
                                     <p className="text-xs text-muted-foreground">
-                                        Disputed / rejected rate
+                                        {t('Disputed / rejected rate')}
                                     </p>
                                     <p className="text-xl font-semibold tabular-nums">
                                         {member.disputedOrRejectedRate}%
@@ -99,12 +97,12 @@ export function MemberDetailSheet({
                                 >
                                     <AlertTriangle aria-hidden="true" />
                                     <AlertTitle>
-                                        Frequent disputes detected
+                                        {t('Frequent disputes detected')}
                                     </AlertTitle>
                                     <AlertDescription>
-                                        This member has a high share of disputed
-                                        or rejected reports. Review recent
-                                        submissions carefully.
+                                        {t(
+                                            'This member has a high share of disputed or rejected reports. Review recent submissions carefully.',
+                                        )}
                                     </AlertDescription>
                                 </Alert>
                             ) : null}
@@ -114,11 +112,11 @@ export function MemberDetailSheet({
                                     id="recent-queries-heading"
                                     className="mb-3 text-sm font-semibold"
                                 >
-                                    Recent queries
+                                    {t('Recent queries')}
                                 </h2>
                                 {member.recentQueries.length === 0 ? (
                                     <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                                        No queries yet.
+                                        {t('No queries yet.')}
                                     </p>
                                 ) : (
                                     <ul className="flex flex-col gap-3">
@@ -138,11 +136,11 @@ export function MemberDetailSheet({
                                                     ) : null}
                                                     {query.crop ? (
                                                         <Badge variant="outline">
-                                                            {query.crop}
+                                                            {t(query.crop)}
                                                         </Badge>
                                                     ) : null}
                                                     <Badge variant="outline">
-                                                        {query.channel}
+                                                        {t(query.channel)}
                                                     </Badge>
                                                     <time dateTime={query.date}>
                                                         {formatDate(query.date)}
@@ -159,11 +157,11 @@ export function MemberDetailSheet({
                                     id="recent-reports-heading"
                                     className="mb-3 text-sm font-semibold"
                                 >
-                                    Recent reports
+                                    {t('Recent reports')}
                                 </h2>
                                 {member.recentReports.length === 0 ? (
                                     <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                                        No reports yet.
+                                        {t('No reports yet.')}
                                     </p>
                                 ) : (
                                     <ul className="flex flex-col gap-3">
@@ -175,21 +173,21 @@ export function MemberDetailSheet({
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div>
                                                         <p className="font-medium">
-                                                            {report.crop}
+                                                            {t(report.crop)}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
                                                             {report.market}
                                                         </p>
                                                     </div>
                                                     <p className="font-semibold tabular-nums">
-                                                        {priceFormatter.format(
+                                                        {formatCurrency(
                                                             report.price,
                                                         )}
                                                     </p>
                                                 </div>
                                                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                                     <Badge variant="outline">
-                                                        {report.status}
+                                                        {t(report.status)}
                                                     </Badge>
                                                     <time
                                                         dateTime={report.date}
@@ -208,9 +206,9 @@ export function MemberDetailSheet({
                     </>
                 ) : (
                     <SheetHeader>
-                        <SheetTitle>Member details</SheetTitle>
+                        <SheetTitle>{t('Member details')}</SheetTitle>
                         <SheetDescription>
-                            Select a member to view their activity.
+                            {t('Select a member to view their activity.')}
                         </SheetDescription>
                     </SheetHeader>
                 )}

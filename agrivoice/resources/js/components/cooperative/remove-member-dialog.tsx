@@ -11,6 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useTranslations } from '@/hooks/use-translations';
 import type { MemberRow, PaginatedMembers } from '@/types/cooperative-members';
 
 type RemoveMemberDialogProps = {
@@ -24,6 +25,8 @@ export function RemoveMemberDialog({
     open,
     onOpenChange,
 }: RemoveMemberDialogProps) {
+    const t = useTranslations();
+
     const confirmRemove = (): void => {
         if (!member || member.status === 'removed') {
             return;
@@ -58,7 +61,9 @@ export function RemoveMemberDialog({
                     onSuccess: () => onOpenChange(false),
                     onError: () => {
                         toast.error(
-                            'Could not remove this member. Please try again.',
+                            t(
+                                'Could not remove this member. Please try again.',
+                            ),
                         );
                     },
                 },
@@ -69,15 +74,21 @@ export function RemoveMemberDialog({
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Remove member?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('Remove member?')}</AlertDialogTitle>
                     <AlertDialogDescription>
                         {member
-                            ? `Remove ${member.name} (${member.phoneNumber}) from this cooperative? They will no longer be able to participate as an active member.`
-                            : 'Remove this member from the cooperative?'}
+                            ? t(
+                                  'Remove :name (:phone) from this cooperative? They will no longer be able to participate as an active member.',
+                                  {
+                                      name: member.name,
+                                      phone: member.phoneNumber,
+                                  },
+                              )
+                            : t('Remove this member from the cooperative?')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                         className="bg-destructive text-white hover:bg-destructive/90"
                         onClick={(event) => {
@@ -85,7 +96,7 @@ export function RemoveMemberDialog({
                             confirmRemove();
                         }}
                     >
-                        Remove member
+                        {t('Remove member')}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

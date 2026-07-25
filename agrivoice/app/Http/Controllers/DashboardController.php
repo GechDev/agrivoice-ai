@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\PriceSnapshotResource;
 use App\Models\Market;
 use App\Services\SnapshotService;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -47,18 +48,21 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'snapshots' => $snapshots,
-            'markets' => Market::query()
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Market $market) => [
-                    'slug' => $market->slug->value,
-                    'name' => $market->name,
-                    'region' => $market->region,
-                    'latitude' => (float) $market->latitude,
-                    'longitude' => (float) $market->longitude,
-                ])
-                ->values()
-                ->all(),
+            // Markets change rarely — short cache cuts repeated work on 2.5s polls.
+            'markets' => Cache::remember('dashboard.markets', 300, function () {
+                return Market::query()
+                    ->orderBy('name')
+                    ->get()
+                    ->map(fn (Market $market) => [
+                        'slug' => $market->slug->value,
+                        'name' => $market->name,
+                        'region' => $market->region,
+                        'latitude' => (float) $market->latitude,
+                        'longitude' => (float) $market->longitude,
+                    ])
+                    ->values()
+                    ->all();
+            }),
         ]);
     }
 }

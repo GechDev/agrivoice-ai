@@ -77,11 +77,23 @@ class SnapshotService
     {
         $markets = Market::query()->get()->keyBy(fn (Market $market) => $market->slug->value);
 
+        // One query for the whole dashboard poll instead of 21 (+ 42 trend) queries.
+        /** @var Collection<string, Collection<int, Report>> $grouped */
+        $grouped = Report::query()
+            ->verified()
+            ->notFlagged()
+            ->where('reported_at', '>=', now()->subDays(self::LOOKBACK_DAYS))
+            ->orderByDesc('reported_at')
+            ->get()
+            ->groupBy(fn (Report $report): string => $report->crop->value.'|'.$report->market_id);
+
         $snapshots = [];
 
         foreach (Crop::cases() as $crop) {
-            foreach ($markets as $slug => $market) {
-                $snapshots[] = $this->forCropMarket($crop, $market);
+            foreach ($markets as $market) {
+                /** @var Collection<int, Report> $pairReports */
+                $pairReports = $grouped->get($crop->value.'|'.$market->id, collect());
+                $snapshots[] = $this->snapshotFromReports($crop, $market, $pairReports);
             }
         }
 
@@ -118,9 +130,27 @@ class SnapshotService
             ->orderByDesc('reported_at')
             ->get();
 
+        return $this->snapshotFromReports($crop, $market, $reports);
+    }
+
+    /**
+     * @param  Collection<int, Report>  $reports
+     * @return array{
+     *     crop: string,
+     *     market: string,
+     *     price: float,
+     *     confidence: int,
+     *     reportCount: int,
+     *     lastUpdated: string|null,
+     *     trend: string,
+     *     changePercent: float|null
+     * }
+     */
+    private function snapshotFromReports(Crop $crop, Market $market, Collection $reports): array
+    {
         $price = $this->weightedPrice($reports);
         $confidence = $this->confidence($reports);
-        $trend = $this->predictionService->trend($crop, $market);
+        $trend = $this->predictionService->trendFromReports($reports);
 
         /** @var Report|null $latest */
         $latest = $reports->first();

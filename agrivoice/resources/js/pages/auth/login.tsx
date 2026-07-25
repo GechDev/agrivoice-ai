@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/hooks/use-translations';
 import { register } from '@/routes';
+import { login as cooperativeLogin } from '@/routes/cooperative';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -100,18 +101,26 @@ export default function Login({ status, canResetPassword }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            {t("Don't have an account?")}{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                {t('Sign up')}
-                            </TextLink>
+                        <div className="space-y-3 text-center text-sm text-muted-foreground">
+                            <p>
+                                {t("Don't have an account?")}{' '}
+                                <TextLink href={register()} tabIndex={5}>
+                                    {t('Sign up')}
+                                </TextLink>
+                            </p>
+                            <p className="border-t border-border pt-3">
+                                {t('Cooperative admin?')}{' '}
+                                <TextLink href={cooperativeLogin()} tabIndex={6}>
+                                    {t('Cooperative login / sign up')}
+                                </TextLink>
+                            </p>
                         </div>
                     </>
                 )}
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-4 text-center text-sm font-medium text-primary">
                     {status}
                 </div>
             )}

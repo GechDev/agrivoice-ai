@@ -1,12 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     ChartNoAxesCombined,
     ClipboardList,
     CreditCard,
-    FolderGit2,
     LayoutGrid,
     List,
+    LogIn,
     Users,
 } from 'lucide-react';
 import { index as membersIndex } from '@/actions/App/Http/Controllers/CooperativeMemberController';
@@ -15,7 +14,6 @@ import { index as cooperativePricesIndex } from '@/actions/App/Http/Controllers/
 import { index as cooperativeReportsIndex } from '@/actions/App/Http/Controllers/CooperativeReportController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -28,14 +26,18 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/hooks/use-translations';
-import { dashboard } from '@/routes';
-import { dashboard as cooperativeDashboard } from '@/routes/cooperative';
+import { dashboard, home, login } from '@/routes';
+import {
+    dashboard as cooperativeDashboard,
+    login as cooperativeLogin,
+} from '@/routes/cooperative';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const t = useTranslations();
     const page = usePage();
     const isCooperativeArea = page.url.startsWith('/cooperative');
+    const isAuthenticated = Boolean(page.props.auth.user);
     const dashboardRoute = isCooperativeArea
         ? cooperativeDashboard()
         : dashboard();
@@ -81,26 +83,16 @@ export function AppSidebar() {
               },
           ];
 
-    const footerNavItems: NavItem[] = [
-        {
-            title: t('Repository'),
-            href: 'https://github.com/laravel/react-starter-kit',
-            icon: FolderGit2,
-        },
-        {
-            title: t('Documentation'),
-            href: 'https://laravel.com/docs/starter-kits#react',
-            icon: BookOpen,
-        },
-    ];
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboardRoute} prefetch>
+                            <Link
+                                href={isAuthenticated ? dashboardRoute : home()}
+                                prefetch
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -113,8 +105,28 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
+                {isAuthenticated ? (
+                    <NavUser />
+                ) : (
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link href={login()}>
+                                    <LogIn />
+                                    <span>{t('Log in')}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild>
+                                <Link href={cooperativeLogin()}>
+                                    <Users />
+                                    <span>{t('Cooperative login')}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                )}
             </SidebarFooter>
         </Sidebar>
     );

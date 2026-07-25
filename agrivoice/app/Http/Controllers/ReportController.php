@@ -26,13 +26,14 @@ use Inertia\Response;
  *    - create(): renders the entry form with the agent's recent entries
  *    - store(): persists a new report and redirects back to the form
  *
- * 2. PUBLIC FEED + MODERATION (Nati's slice):
+ * 2. LIVE LIST + MODERATION (Nati's slice):
  *    - index(): the live report list with newest-first ordering
  *    - flag(): marks an outlier so SnapshotService excludes it
  *
  * The create/store pair is behind the 'agent' middleware (requires
- * a signed-in agent). The index/flag pair is public — anyone can
- * view the live list, but flagging is a deliberate UI action.
+ * a signed-in agent). The live list (index) is a public showcase surface;
+ * flagging remains behind auth+verified. Data is Inertia props only —
+ * there is no public REST API.
  */
 class ReportController extends Controller
 {
@@ -58,7 +59,7 @@ class ReportController extends Controller
     public function index(): Response
     {
         $reports = Report::query()
-            ->with(['agent', 'market'])
+            ->with(['agent', 'market', 'cooperativeMember.farmer'])
             ->latest('reported_at')
             ->latest('id')
             ->limit(50)
@@ -66,6 +67,7 @@ class ReportController extends Controller
 
         return Inertia::render('reports', [
             'reports' => ReportResource::collection($reports)->resolve(),
+            'canModerate' => auth()->check(),
         ]);
     }
 
