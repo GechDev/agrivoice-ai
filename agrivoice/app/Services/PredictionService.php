@@ -88,6 +88,7 @@ class PredictionService
     private function averagePrice(Crop $crop, Market $market, mixed $from, mixed $to): ?float
     {
         $avg = Report::query()
+            ->verified()
             ->notFlagged()
             ->forCropMarket($crop, $market->id)
             ->whereBetween('reported_at', [$from, $to])

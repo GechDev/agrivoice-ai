@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Crop;
 use App\Enums\ReporterType;
+use App\Enums\ReportStatus;
 use App\Models\Agent;
 use App\Models\Market;
 use App\Models\Report;
@@ -148,6 +149,7 @@ class ReportSeeder extends Seeder
                         'agent_id' => $this->agentFor($agents, $reportIndex++)->id,
                         'reported_at' => now()->subDays($daysAgo),
                         'is_flagged' => false,
+                        'status' => ReportStatus::Verified,
                     ]);
                 }
             }
@@ -234,6 +236,7 @@ class ReportSeeder extends Seeder
                 'agent_id' => $this->agentFor($agents, $index)->id,
                 'reported_at' => now()->subHours($index + 1),
                 'is_flagged' => false,
+                'status' => ReportStatus::Verified,
             ]);
         }
     }

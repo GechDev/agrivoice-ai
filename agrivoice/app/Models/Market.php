@@ -4,21 +4,24 @@ namespace App\Models;
 
 use App\Enums\MarketSlug;
 use Database\Factories\MarketFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
- * A physical marketplace where commodity prices are observed.
- *
- * Markets are static reference data — there is no create/update/delete
- * endpoint. They are seeded once by MarketSeeder and referenced by
- * foreign key in the reports table. The MarketSlug enum carries the
- * display label, region, and Leaflet coordinates so the front-end
- * never has to reverse-geocode.
- *
- * The map on the dashboard renders one marker per market; clicking a
- * marker filters the live report list to that market.
+ * @property int $id
+ * @property MarketSlug $slug
+ * @property string $name
+ * @property string $region
+ * @property string $latitude
+ * @property string $longitude
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Report> $reports
+ * @property-read Collection<int, Prediction> $predictions
+ * @property-read Collection<int, MemberQuery> $memberQueries
  */
 class Market extends Model
 {
@@ -26,10 +29,6 @@ class Market extends Model
     use HasFactory;
 
     /**
-     * All columns except timestamps are meaningful reference data.
-     * slug is the stable URL key (e.g. ?market=adama) and must
-     * never change once seeded.
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -41,10 +40,6 @@ class Market extends Model
     ];
 
     /**
-     * Casts:
-     * - slug → MarketSlug enum for type-safe comparisons
-     * - latitude/longitude → decimal:7 to preserve OSM precision
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -57,12 +52,26 @@ class Market extends Model
     }
 
     /**
-     * All price reports observed at this market.
-     *
      * @return HasMany<Report, $this>
      */
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * @return HasMany<Prediction, $this>
+     */
+    public function predictions(): HasMany
+    {
+        return $this->hasMany(Prediction::class);
+    }
+
+    /**
+     * @return HasMany<MemberQuery, $this>
+     */
+    public function memberQueries(): HasMany
+    {
+        return $this->hasMany(MemberQuery::class);
     }
 }

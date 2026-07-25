@@ -34,6 +34,8 @@ class AgentSeeder extends Seeder
         ['name' => 'Nba', 'pin' => '4444'],
     ];
 
+    public const PUBLIC_AGENT_NAME = 'Public Submission';
+
     public function run(): void
     {
         foreach (self::AGENTS as $agent) {
@@ -42,5 +44,10 @@ class AgentSeeder extends Seeder
                 ['pin' => $agent['pin']],
             );
         }
+
+        Agent::query()->firstOrCreate(
+            ['name' => self::PUBLIC_AGENT_NAME],
+            ['pin' => '0000'],
+        );
     }
 }

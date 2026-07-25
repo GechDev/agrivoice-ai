@@ -4,7 +4,9 @@ namespace Database\Factories;
 
 use App\Enums\Crop;
 use App\Enums\ReporterType;
+use App\Enums\ReportStatus;
 use App\Models\Agent;
+use App\Models\CooperativeMember;
 use App\Models\Market;
 use App\Models\Report;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,8 +28,10 @@ class ReportFactory extends Factory
             'reporter_type' => fake()->randomElement(ReporterType::cases()),
             'source' => fake()->optional()->randomElement(['wfp', 'ecx', 'farmer', 'user']),
             'agent_id' => Agent::factory(),
+            'cooperative_member_id' => null,
             'reported_at' => fake()->dateTimeBetween('-14 days', 'now'),
             'is_flagged' => false,
+            'status' => ReportStatus::Verified,
         ];
     }
 
@@ -79,5 +83,35 @@ class ReportFactory extends Factory
     public function sorghum(): static
     {
         return $this->state(fn () => ['crop' => Crop::Sorghum]);
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn () => ['status' => ReportStatus::Pending]);
+    }
+
+    public function verified(): static
+    {
+        return $this->state(fn () => ['status' => ReportStatus::Verified]);
+    }
+
+    public function disputed(): static
+    {
+        return $this->state(fn () => ['status' => ReportStatus::Disputed]);
+    }
+
+    public function rejected(): static
+    {
+        return $this->state(fn () => ['status' => ReportStatus::Rejected]);
+    }
+
+    public function fromMember(CooperativeMember $member): static
+    {
+        return $this->state(fn (): array => [
+            'cooperative_member_id' => $member->id,
+            'agent_id' => null,
+            'reporter_type' => ReporterType::Crowd,
+            'source' => 'cooperative_member',
+        ]);
     }
 }

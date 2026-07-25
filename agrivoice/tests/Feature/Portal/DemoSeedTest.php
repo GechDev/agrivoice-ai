@@ -12,7 +12,7 @@ beforeEach(function (): void {
 });
 
 test('seeding fills every crop and market pair so the dashboard opens populated', function () {
-    expect(Agent::count())->toBe(4)
+    expect(Agent::count())->toBe(5)
         ->and(Market::count())->toBe(3);
 
     foreach (Crop::cases() as $crop) {
@@ -69,7 +69,7 @@ test('every seeded report is attributed to an agent', function () {
 test('re-seeding does not duplicate the agent roster or the markets', function () {
     $this->seed(ReportSeeder::class);
 
-    expect(Agent::count())->toBe(4)
+    expect(Agent::count())->toBe(5)
         ->and(Market::count())->toBe(3);
 });
 

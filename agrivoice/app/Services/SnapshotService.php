@@ -111,6 +111,7 @@ class SnapshotService
     {
         /** @var Collection<int, Report> $reports */
         $reports = Report::query()
+            ->verified()
             ->notFlagged()
             ->forCropMarket($crop, $market->id)
             ->where('reported_at', '>=', now()->subDays(self::LOOKBACK_DAYS))

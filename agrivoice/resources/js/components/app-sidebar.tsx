@@ -1,5 +1,19 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, List } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    BookOpen,
+    ChartNoAxesCombined,
+    ClipboardList,
+    CreditCard,
+    FolderGit2,
+    LayoutGrid,
+    List,
+    Users,
+} from 'lucide-react';
+import { index as membersIndex } from '@/actions/App/Http/Controllers/CooperativeMemberController';
+import { index as cooperativeBillingIndex } from '@/actions/App/Http/Controllers/CooperativeBillingController';
+import { index as cooperativePricesIndex } from '@/actions/App/Http/Controllers/CooperativePriceController';
+import { index as cooperativeReportsIndex } from '@/actions/App/Http/Controllers/CooperativeReportController';
+import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,25 +28,58 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/hooks/use-translations';
-import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import { dashboard } from '@/routes';
+import { dashboard as cooperativeDashboard } from '@/routes/cooperative';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const t = useTranslations();
+    const page = usePage();
+    const isCooperativeArea = page.url.startsWith('/cooperative');
+    const dashboardRoute = isCooperativeArea
+        ? cooperativeDashboard()
+        : dashboard();
 
-    const mainNavItems: NavItem[] = [
-        {
-            title: t('Dashboard'),
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-        {
-            title: t('Live list'),
-            href: reportsIndex(),
-            icon: List,
-        },
-    ];
+    const mainNavItems: NavItem[] = isCooperativeArea
+        ? [
+              {
+                  title: t('Dashboard'),
+                  href: cooperativeDashboard(),
+                  icon: LayoutGrid,
+              },
+              {
+                  title: t('Members'),
+                  href: membersIndex(),
+                  icon: Users,
+              },
+              {
+                  title: t('Reports'),
+                  href: cooperativeReportsIndex(),
+                  icon: ClipboardList,
+              },
+              {
+                  title: t('Prices'),
+                  href: cooperativePricesIndex(),
+                  icon: ChartNoAxesCombined,
+              },
+              {
+                  title: t('Billing'),
+                  href: cooperativeBillingIndex(),
+                  icon: CreditCard,
+              },
+          ]
+        : [
+              {
+                  title: t('Dashboard'),
+                  href: dashboard(),
+                  icon: LayoutGrid,
+              },
+              {
+                  title: t('Live list'),
+                  href: reportsIndex(),
+                  icon: List,
+              },
+          ];
 
     const footerNavItems: NavItem[] = [
         {
@@ -53,7 +100,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboardRoute} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

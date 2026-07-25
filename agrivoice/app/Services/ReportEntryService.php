@@ -68,6 +68,7 @@ class ReportEntryService
             'agent_id' => $agent->id,
             'reported_at' => $this->resolveReportedAt((string) $data['reported_at']),
             'is_flagged' => false,
+            'status' => 'verified',
         ]);
     }
 

@@ -13,6 +13,8 @@ export type FlashToast = {
     message: string;
 };
 
+export type { BulkInviteSummary, SharedFlash } from './cooperative-members';
+
 export type AuthLayoutProps = {
     children?: ReactNode;
     name?: string;
