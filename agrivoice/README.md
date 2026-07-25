@@ -1,97 +1,127 @@
 # AgriVoice
 
-Real-time, confidence-scored crop prices for Ethiopian markets — powered by crowd-reported sales.
+AgriVoice is a multilingual agricultural market platform for Ethiopia. It turns field reports into current, confidence-scored crop prices and makes them available through a web dashboard and an Amharic keypad-based IVR experience.
 
-## Prerequisites
+Farmers and agents can report prices, cooperatives can review market activity, and users can hear crop prices without navigating a text-heavy interface.
 
-- PHP ^8.3
+## Main features
+
+- Live crop prices across Ethiopian markets
+- Confidence scores based on recent verified reports
+- Public price reporting and agent data entry
+- Cooperative member, report, price, and billing tools
+- Amharic, Afaan Oromoo, and English interfaces
+- Amharic IVR keypad with pre-generated Addis AI audio
+- Seeded WFP historical price data for demonstrations
+
+## Technology
+
+- Laravel 13 and PHP 8.3
+- React 19, TypeScript, and Inertia.js
+- Tailwind CSS
+- SQLite by default
+- Pest for backend tests
+- Addis AI for Amharic text-to-speech
+
+## Requirements
+
+- PHP 8.3 or newer
 - Composer
-- Node.js & npm
-- SQLite
+- Node.js and npm
+- SQLite with the PHP SQLite extension
 
-## Setup (demo-ready)
+## Local setup
 
-```bash
-composer run setup
-php artisan migrate:fresh --seed
-composer run dev
-```
-
-Or step by step:
+From the repository root:
 
 ```bash
-cp .env.example .env
+cd agrivoice
 composer install
-php artisan key:generate
+cp .env.example .env
 touch database/database.sqlite
+php artisan key:generate
 php artisan migrate:fresh --seed
-npm install
+npm install --legacy-peer-deps
 npm run build
-composer run dev
 ```
 
-`migrate:fresh --seed` yields a fully populated showcase database. Do not live-fetch during demos.
-
-## Development
+Start the application:
 
 ```bash
 composer run dev
 ```
 
-Open **http://127.0.0.1:8000** (prefer this over `localhost` so PHP and Vite stay on the same IPv4 loopback).
+Open `http://127.0.0.1:8000`.
 
-If the page looks like unstyled / “raw” HTML:
+The database seeder creates demonstration users, agents, cooperatives, reports, and market-price data.
 
-1. Run `composer run dev` (Vite must be up), **or**
-2. Run `npm run build` once, then `php artisan serve --host=127.0.0.1`
-3. Hard-refresh the browser
+## Amharic IVR setup
 
-Or separately:
+The web application works without Addis AI credentials, but audio generation requires an API key.
 
-```bash
-php artisan serve --host=127.0.0.1 --port=8000
-npm run dev
+Add the following values to `.env`:
+
+```dotenv
+ADDIS_AI_API_KEY=your_api_key
+ADDIS_AI_VOICE_ID=am-hamen
 ```
 
-## Demo credentials
+Create the public storage link and generate the reusable IVR prompts:
 
-| Surface | How to sign in |
-| ------- | -------------- |
-| Agent portal (`/portal/login`) | Tsegaye / `1111`, Gezachew / `2222`, Nati / `3333`, Nba / `4444` |
-| Cooperative portal (`/cooperative/login`) | `coop.owner@gmail.com` / `password` |
-| Farmer/moderator (`/login`) | `test@example.com` / `password` |
+```bash
+php artisan storage:link
+php artisan ivr:generate-audio
+```
 
-## Key public URLs
+The command shows the estimated Addis AI cost before generating audio. Generated files are stored in `storage/app/public/ivr`.
 
-| Path | Purpose |
-| ---- | ------- |
-| `/` | Landing |
-| `/dashboard` | Live price dashboard (no login) |
-| `/reports` | Live report feed (flagging requires login) |
+Open `/ivr` after signing in. Keys 1 through 4 announce current crop prices, while key 5 repeats the menu.
+
+## Demo accounts
+
+| Area | Credentials |
+| --- | --- |
+| Main application | `test@example.com` / `password` |
+| Cooperative portal | `coop.owner@gmail.com` / `password` |
+| Agent portal | Tsegaye / `1111`, Gezachew / `2222`, Nati / `3333`, Nba / `4444` |
+
+## Important routes
+
+| Route | Description |
+| --- | --- |
+| `/` | Product landing page |
+| `/dashboard` | Current crop-price dashboard |
+| `/reports` | Live field-report feed |
 | `/report-price` | Public price submission |
-| `/portal/login` | Agent data-entry |
-| `/cooperative/login` | Cooperative admin |
-
-## Deploy notes
-
-- Default DB is SQLite (`DB_CONNECTION=sqlite`). For production, set a durable DB and `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://...`.
-- `QUEUE_CONNECTION=sync` is fine for demos (member invites log immediately). Use `database` + a queue worker if you need async jobs.
-- Build assets before serving: `npm run build`.
-- Health check: `GET /up`.
+| `/ivr` | Amharic keypad IVR |
+| `/portal/login` | Agent sign-in |
+| `/cooperative/login` | Cooperative sign-in |
 
 ## Testing
+
+Run the test suite:
 
 ```bash
 php artisan test --compact
 ```
 
-## Lint & type checking
+Check PHP formatting:
 
 ```bash
-composer run lint
-npm run lint
-npm run format
-composer run types:check
-npm run types:check
-composer run ci:check
+vendor/bin/pint --test
 ```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+## Production notes
+
+- Set `APP_ENV=production`, `APP_DEBUG=false`, and a correct HTTPS `APP_URL`.
+- Replace SQLite with a durable production database when needed.
+- Configure a queue worker if `QUEUE_CONNECTION` is not `sync`.
+- Run `npm run build` before deployment.
+- Run `php artisan storage:link` when IVR audio is enabled.
+- The application health endpoint is available at `/up`.
