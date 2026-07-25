@@ -7,8 +7,15 @@ alwaysApply: false
 # Laravel Backend Conventions
 
 Laravel 11/12, PHP 8.2+. Keep it lean — showcase service, not an enterprise
-codebase. Favor Laravel conventions over bespoke abstractions. Backend owner:
-**Nba** (see `130-owner-nba-backend.mdc`).
+codebase. Favor Laravel conventions over bespoke abstractions.
+
+This file is a **shared convention**, not an ownership split. There is no single
+"backend person" — work is divided by functionality (see `000`), and **each owner
+writes the backend for their own slice**:
+- Dashboard + snapshot/trend engine → Tsegaye (`100`)
+- Agent auth + `POST /reports` + validation → Gezachew (`110`)
+- `GET /reports` + flag/moderation → Nati (`120`)
+- Bids endpoints + `bids` table → Nba (`130`)
 
 ## Structure
 
@@ -17,8 +24,9 @@ app/
   Http/
     Controllers/
       DashboardController.php   # 6 aggregated snapshots -> Inertia page (Tsegaye)
-      ReportController.php      # store + list + flag reports (Gezachew, Nati)
+      ReportController.php      # store (Gezachew) + index/flag (Nati)
       AgentAuthController.php   # name + PIN light login (Gezachew)
+      BidController.php         # store + list bids (Nba)
     Requests/                  # FormRequest validation
     Resources/                 # API Resources (JSON shaping, camelCase)
   Services/

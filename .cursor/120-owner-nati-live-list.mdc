@@ -1,31 +1,26 @@
 ---
-description: OWNER — Nati. Live data list — the master feed of every entered report, with attribution, filters, and flag-outlier.
-globs: resources/js/Pages/Reports.tsx,resources/js/Pages/LiveList.tsx,resources/js/Components/RecentReportsFeed.tsx,resources/js/Components/ReportRow.tsx
+description: OWNER — Nati. Live data list & moderation (full-stack) — feed/filters/flag on the front; list + flag endpoints + exclusion on the back.
+globs: resources/js/Pages/Reports.tsx,resources/js/Pages/LiveList.tsx,resources/js/Components/RecentReportsFeed.tsx,resources/js/Components/ReportRow.tsx,app/Http/Controllers/ReportController.php
 alwaysApply: false
 ---
 
-# Owner: Nati — Live Data List
+# Owner: Nati — Live Data List & Moderation (full-stack)
 
-You own **the list of the live data** — the master feed of every report agents
-enter, newest first, updating live. This is the "watch the data pour in" screen
-and the home of the anti-poisoning / flag-outlier story.
+You own **the list of the live data** and its moderation — front and back. This is
+the "watch the data pour in" screen and the home of the anti-poisoning /
+flag-outlier story.
 
-Read `000-project-overview.mdc` and `010-frontend-conventions.mdc` first.
-Coordinate the row shape with **Gezachew** and the `GET /reports` +
-`POST /reports/{id}/flag` endpoints with **Nba**.
+You read the shared `reports` table (Gezachew owns its migration — coordinate the
+row shape day one). Read `000`, `010`, `020`, `040` first.
 
-## What you build
+## Backend (your half)
 
-- `resources/js/Pages/Reports.tsx` (or `LiveList.tsx`) — route `GET /reports`.
-- `resources/js/Components/RecentReportsFeed.tsx` — the scrolling list.
-- `resources/js/Components/ReportRow.tsx` — one row (share with Gezachew's
-  "my recent entries").
-
-## The row
-
-Each report shows: **crop, market, price (ETB/quintal), reported-at, source
-(official/crowd), the agent who entered it (attribution — LOCKED), and a flag
-control.** Flagged rows render visibly struck/dimmed.
+- `app/Http/Controllers/ReportController.php@index` — `GET /reports`: newest-first
+  reports, joined with the agent name, shaped via an **API Resource** (camelCase).
+- `@flag` — `POST /reports/{id}/flag`: set `is_flagged = true`. Flagged rows are
+  **excluded from Tsegaye's aggregates** — coordinate so `SnapshotService`
+  honors it (the exclusion query lives in his engine; your job is to set the flag
+  and expose it).
 
 ```ts
 interface ReportRowData {
@@ -41,6 +36,15 @@ interface ReportRowData {
 }
 ```
 
+## Frontend (your half)
+
+- `resources/js/Pages/Reports.tsx` (route `GET /reports`),
+  `Components/RecentReportsFeed.tsx`, `Components/ReportRow.tsx` (share the row
+  with Gezachew's "my recent entries").
+- Each row: crop, market, price, reported-at, source, **agent who entered it**,
+  and a **flag** control. Flagged rows render struck/dimmed.
+- Filters (client-side is fine): by crop, by market, "flagged only" toggle.
+
 ## Live update (LOCKED: polling)
 
 ```tsx
@@ -50,23 +54,16 @@ useEffect(() => {
 }, []);
 ```
 
-New rows should slide/highlight in so the audience sees data arriving in real
-time as Gezachew submits.
-
-## Filters
-
-Client-side is fine for the demo: filter by crop and by market (dropdowns), and a
-"flagged only" toggle. Keep it snappy.
+New rows slide/highlight in so the audience sees data arriving as Gezachew submits.
 
 ## Flag-outlier (the anti-poisoning beat)
 
-A **flag** button per row → `POST /reports/{id}/flag`. Flagged reports are
-excluded from Tsegaye's aggregated snapshot (Nba enforces that server-side), so
-flagging a fake low price and watching the dashboard confidence/price correct
-itself is a strong live moment. Wire the button; the exclusion logic is Nba's.
+A flag button → `POST /reports/{id}/flag`. Flag a fake low price and watch the
+dashboard's price/confidence self-correct — a strong live moment. Wire the button
+and set the flag; Tsegaye's engine excludes flagged rows.
 
 ## Don't
 
-- Don't recompute aggregates here — you show raw reports; the dashboard shows the
+- Don't recompute aggregates — you show raw reports; the dashboard shows the
   aggregate.
-- Don't paginate heavily for the demo; newest ~50 is plenty.
+- Don't paginate heavily; newest ~50 rows is plenty for the demo.

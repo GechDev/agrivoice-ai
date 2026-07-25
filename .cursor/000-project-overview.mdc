@@ -1,5 +1,5 @@
 ---
-description: AgriVoice showcase — vision, demo scope, locked decisions, and the 4-person ownership map. Read this before writing any code.
+description: AgriVoice showcase — vision, demo scope, locked decisions, and the 4-person functionality ownership map. Read this before writing any code.
 alwaysApply: true
 ---
 
@@ -17,70 +17,76 @@ showcase, voice is PARKED.** Amharic STT is the single most likely thing to fail
 on stage, and it isn't what proves the idea. Instead we demo the data engine:
 
 > **The money shot:** a human **agent** enters a farmer's price in the data-entry
-> **portal**, and the public **showcase dashboard** updates in front of the judges —
-> new price, new confidence %, new trend, live on the map.
+> portal, it shows up in the live data list, and the public **dashboard** updates
+> in front of the judges — new price, new confidence %, new trend, live on the map.
 
 That one loop proves the crowd-data moat. Everything we build serves it.
 
+## How we divide the work (by functionality, NOT by front/back)
+
+There is **no "frontend person" and no "backend person".** Each teammate owns one
+**functionality end-to-end** — its React/Inertia pages AND its Laravel
+controllers/services/endpoints. `010`/`020` are shared *conventions* everyone
+follows; they are not an ownership split.
+
+| Owner | Functionality (full-stack slice) | Guide |
+|-------|----------------------------------|-------|
+| **Tsegaye** | **Live dashboard** — the projector screen + the aggregation/confidence/trend engine that feeds it | `100-owner-tsegaye-dashboard.mdc` |
+| **Gezachew** | **Data-entry portal** — agent login + entry form + store/validate reports | `110-owner-gezachew-entry-portal.mdc` |
+| **Nati** | **Live data list & moderation** — the feed + filters + flag-outlier + its endpoints | `120-owner-nati-live-list.mdc` |
+| **Nba** | **Bidding tab** — buyers/sellers post bids (a 2nd crowd data signal) + folding bids into the market picture | `130-owner-nba-bidding.mdc` |
+
+Each person writes their own front and back. The only thing you all touch in
+common is the shared foundation below — agree it **day one**.
+
 ## Locked decisions (do not re-litigate)
 
-1. **"Live" = polling.** The dashboard and live list re-fetch every ~2–3s. No
-   websockets/Reverb — it must survive conference wifi. See owner files.
-2. **Named agents, light login.** Each data-entry agent has a name + PIN so every
-   entry is attributed ("entered by Nati"). This powers the attribution and
-   flag-outlier / anti-poisoning story. No full user auth beyond this.
+1. **"Live" = polling.** Dashboard, list, and bids re-fetch every ~2–3s via
+   Inertia `router.reload({ only: [...] })`. No websockets/Reverb — must survive
+   conference wifi.
+2. **Named agents, light login.** Each agent has a name + PIN so every entry is
+   attributed ("entered by Nati"). Powers attribution + the flag-outlier story.
+   No full user auth beyond this.
 3. **One host laptop.** The showcase laptop runs Laravel + SQLite and serves the
-   dashboard on the projector; agents enter data from their own laptops by
-   hitting the host's LAN IP (`http://<host-ip>:8000`). See `050-infra-devops.mdc`.
+   dashboard on the projector; everyone else hits the host's LAN IP
+   (`http://<host-ip>:8000`). See `050-infra-devops.mdc`.
 
-## In scope (the spine)
+## Shared foundation (day-one, agreed by all four)
 
-1. **Data-entry portal** — agent picks crop + market, enters price / date / source,
-   submits. Owner: **Gezachew**.
-2. **Live data list** — master table of every entry, newest first, with agent
-   attribution, crop/market filters, and a flag-outlier action. Owner: **Nati**.
-3. **Showcase dashboard** — price cards (price + confidence % + report count +
-   last-updated), market map, trend arrows, auto-refreshing. Owner: **Tsegaye**.
-4. **Market intelligence backend** — aggregation, confidence scoring, nearby-market
-   comparison, moving-average trend, agent auth, seed data. Owner: **Nba**.
+These are the seams between slices. Freeze them before anyone goes deep, so four
+people writing four backends don't disagree on the `reports` table or field names.
+
+**Data model** (full schema in `040-database-eloquent.mdc`): `agents`, `markets`,
+`reports`, `bids`. `reports` is the shared heart — Gezachew writes its migration,
+Tsegaye and Nati read it. Coordinate its columns first.
+
+**The endpoint contract:**
+- `POST /reports` — agent submits a price (Gezachew).
+- `GET  /reports` — the live list, newest first, with `agentName` (Nati).
+- `POST /reports/{id}/flag` — flag an outlier, excluded from aggregates (Nati).
+- `GET  /dashboard` (Inertia `snapshots`) — 6 aggregated tiles (Tsegaye).
+- `POST /bids` + `GET /bids` — post/list bids (Nba).
+- agent login (name + PIN) — sets the session agent (Gezachew).
+
+**Seeding** — collaborative: each owner seeds their own slice's data (Gezachew:
+agents + a spread of reports; Nba: sample bids; Tsegaye: market coords). One
+`php artisan migrate:fresh --seed` must yield a demo-ready DB. Never live-fetch
+during judging.
 
 ## Out of scope (say it out loud — nobody builds these)
 
-- Voice pipeline (STT / TTS / LLM). Parked — see `030-ai-llm-safety.mdc` for when
-  it returns. A single canned voice clip is an *optional* stretch, never on the
-  critical path.
+- Voice pipeline (STT/TTS/LLM). Parked — see `030`. A single canned voice clip is
+  an *optional* stretch, never on the critical path.
 - Cooperative dashboard, trader/exporter API, NGO reporting, agri-input cross-sell
   — that's the *business model*, not the demo.
-- Real user auth / accounts, payments, admin panels, settings pages.
-- Any crop or market outside the list below.
+- Real user auth/accounts, payments, admin panels, settings pages.
+- Any crop or market outside the fixed scope below.
 
 ## Fixed scope
 
 - **Crops:** Teff, Coffee (only).
 - **Markets:** Adama, Addis Ababa, Jimma (only) — 2 crops × 3 markets = 6 dashboard tiles.
 - **Currency/unit:** ETB per quintal, everywhere.
-
-## Team ownership map
-
-| Owner | Area | Guide |
-|-------|------|-------|
-| **Tsegaye** | Showcase live dashboard (cards, map, trends, polling) | `100-owner-tsegaye-dashboard.mdc` |
-| **Gezachew** | Data-entry portal (agent form, validation, submit) | `110-owner-gezachew-entry-portal.mdc` |
-| **Nati** | Live data list (table, filters, attribution, flag) | `120-owner-nati-live-list.mdc` |
-| **Nba** | Backend (data model, engine, agent auth, seed, API) | `130-owner-nba-backend.mdc` |
-
-Gezachew and Nati share one backend contract (the entry endpoint + the list
-endpoint from Nba) — coordinate on those shapes early.
-
-## The one contract everyone depends on
-
-The whole demo hinges on the shapes Nba exposes. Agree these on day one:
-
-- `POST /reports` — an agent submits a price (portal). Returns the stored row.
-- `GET  /reports` — the live list (Nati), newest first, with agent name.
-- `GET  /dashboard` (Inertia) / `GET /api/snapshot` — the 6 aggregated tiles
-  (Tsegaye): price, confidence, reportCount, lastUpdated, trend, per crop+market.
-- `POST /reports/{id}/flag` — mark an entry as an outlier (Nati).
 
 ## Stack (authoritative — ignore any Next.js in old planning docs)
 

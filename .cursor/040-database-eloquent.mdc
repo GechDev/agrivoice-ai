@@ -9,7 +9,9 @@ alwaysApply: false
 SQLite via Eloquent + migrations. Zero-config: the DB is a single file
 (`database/database.sqlite`), so contributors just run migrations — no DB server.
 For the showcase it lives on the **host laptop** and agents hit it over LAN (see
-`050-infra-devops.mdc`). Keep the schema minimal — four core tables cover the demo.
+`050-infra-devops.mdc`). Keep the schema minimal. Ownership of tables follows the
+functionality slices: Gezachew owns `agents` + the shared `reports` migration,
+Nba owns `bids`, Tsegaye seeds `markets` coords.
 
 ## Core tables
 
@@ -43,11 +45,13 @@ A current "price snapshot" is a **derived aggregate over `reports`** (recent,
 non-flagged, weighted by recency + reporter_type), not a stored column. Keep the
 raw reports; compute the displayed number.
 
-> **Optional stretch — `bids` table:** a bidding tab where buyers/sellers post
-> what they'd pay/accept (a second crowd data signal). Not on the demo critical
-> path; only add if the spine is done. If added: `crop`, `market_id`,
-> `side` (`buy|sell`), `price`, `is_flagged`, `expires_at` — weight lower than
-> reports and exclude flagged/expired from snapshots.
+**bids** (bidding tab — Nba's slice; a second crowd data signal)
+- `id`, `crop` (`teff|coffee`), `market_id` (FK → markets), `side` (`buy|sell`),
+  `price` (decimal, ETB/quintal), `agent_id` (FK, nullable), `is_flagged` (bool,
+  default false), `expires_at` (nullable), timestamps.
+- Bids feed the market picture at a **lower weight** than reports (intent, not a
+  confirmed sale); exclude flagged/expired. Never let bids alone drive a displayed
+  price. Owner coordinates weighting with Tsegaye's `SnapshotService`.
 
 ## Migrations & seeding
 
@@ -61,10 +65,10 @@ raw reports; compute the displayed number.
 
 ## Eloquent conventions
 
-- Models: `Agent`, `Market`, `Report`, `Prediction`. Relationships
-  (`Market hasMany Report`, `Agent hasMany Report`).
-- **Cast enums** — PHP enums or `$casts` for `crop`, `reporter_type`, `trend` so
-  invalid values can't leak in.
+- Models: `Agent`, `Market`, `Report`, `Bid`, `Prediction`. Relationships
+  (`Market hasMany Report`, `Market hasMany Bid`, `Agent hasMany Report`).
+- **Cast enums** — PHP enums or `$casts` for `crop`, `reporter_type`, `trend`, and
+  the bid `side` so invalid values can't leak in.
 - Put snapshot/confidence aggregation in a query scope or `SnapshotService`, not
   duplicated across controllers.
 - Guard against poisoning: confidence drops when reports disagree; flagged

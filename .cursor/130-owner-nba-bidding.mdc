@@ -1,0 +1,65 @@
+---
+description: OWNER — Nba. Bidding tab (full-stack) — buyers/sellers post bids on the front; bids table + endpoints + folding bids into the market signal on the back.
+globs: resources/js/Pages/Bids.tsx,resources/js/Components/BidForm.tsx,resources/js/Components/BidsList.tsx,app/Http/Controllers/BidController.php
+alwaysApply: false
+---
+
+# Owner: Nba — Bidding Tab (full-stack)
+
+You own the **bidding tab** — front and back. Users post what they'd pay (buy) or
+accept (sell) for a crop at a market. Its purpose is **more crowd data**: bids are
+a second live price signal on top of agent reports, and posting one is another
+visible "data arriving" moment for the demo.
+
+You own the `bids` table end-to-end. Read `000`, `010`, `020`, `040` first, and
+coordinate with **Tsegaye** on how bids feed the dashboard signal.
+
+## Backend (your half)
+
+- `app/Http/Controllers/BidController.php`:
+  - `@store` — `POST /bids`: validate + save. crop `teff|coffee`, market
+    `adama|addis_ababa|jimma`, side `buy|sell`, price > 0 and < 100000. Attribute
+    to the session agent if logged in (reuse Gezachew's session `agent_id`).
+  - `@index` — `GET /bids`: newest-first, shaped via an API Resource (camelCase).
+- Migration + model: `bids` (`crop`, `market_id`, `side`, `price`, `agent_id`
+  nullable, `is_flagged`, `expires_at` nullable, timestamps) — see `040`.
+- **Fold bids into the market picture** (coordinate with Tsegaye): bids are a
+  *lower-weighted* signal than reports (a bid is intent, not a confirmed sale).
+  Exclude flagged/expired. **Never let bids alone drive a displayed price** if no
+  reports exist — surface low confidence instead.
+- Seed a handful of sample bids so the tab isn't empty on stage.
+
+## Frontend (your half)
+
+- `resources/js/Pages/Bids.tsx` (route `GET /bids`), `Components/BidForm.tsx`,
+  `Components/BidsList.tsx`.
+
+```ts
+interface Bid {
+  id: number;
+  crop: 'teff' | 'coffee';
+  market: 'adama' | 'addis_ababa' | 'jimma';
+  side: 'buy' | 'sell';
+  price: number;         // ETB/quintal
+  agentName: string | null;
+  createdAt: string;
+}
+```
+
+- Bid form: crop, market, side (buy/sell), price → `router.post('/bids', data)`.
+- Bids list: newest first, buy/sell visibly distinguished (e.g. green/red).
+
+## Live update (LOCKED: polling)
+
+```tsx
+useEffect(() => {
+  const id = setInterval(() => router.reload({ only: ['bids'] }), 2500);
+  return () => clearInterval(id);
+}, []);
+```
+
+## Keep it lightweight
+
+Bidding is a **data-collection surface, not a marketplace** — no matching, escrow,
+or payments. Post a bid, see the bids, done. If time is short, this is the slice
+most safely trimmed — but it's a strong "extra data source" beat if it lands.

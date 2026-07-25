@@ -9,10 +9,12 @@ alwaysApply: false
 React + TypeScript rendered through **Inertia.js** inside Laravel. Monolith: no
 React Router, no Next.js, no client-side fetching for the initial page load.
 
-Three frontend surfaces, three owners:
-- **Dashboard** (Tsegaye) — `100-owner-tsegaye-dashboard.mdc`
+This file is a **shared convention**, not an ownership split. Work is divided by
+functionality (see `000`) — each owner builds their own front *and* back:
+- **Live dashboard** (Tsegaye) — `100-owner-tsegaye-dashboard.mdc`
 - **Data-entry portal** (Gezachew) — `110-owner-gezachew-entry-portal.mdc`
 - **Live data list** (Nati) — `120-owner-nati-live-list.mdc`
+- **Bidding tab** (Nba) — `130-owner-nba-bidding.mdc`
 
 ## Inertia essentials
 
