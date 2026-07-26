@@ -1,72 +1,92 @@
-import { Head, setLayoutProps, usePoll } from '@inertiajs/react';
+import { Head, router, setLayoutProps, usePoll } from '@inertiajs/react';
+import { MapPin } from 'lucide-react';
+
 import { MarketMap } from '@/components/market-map';
 import { PageSection, StaggerItem } from '@/components/motion/page-section';
 import { PageHeader } from '@/components/page-header';
 import { PriceCard } from '@/components/price-card';
 import { TrendChart } from '@/components/trend-chart';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useTranslations } from '@/hooks/use-translations';
-import { CROPS } from '@/lib/agrivoice';
+import { DASHBOARD_CROPS, marketLabel } from '@/lib/agrivoice';
 import { dashboard } from '@/routes';
-import type { MarketMarker, PriceSnapshot } from '@/types';
+import type { MarketMarker, MarketSlug, PriceSnapshot, SubmissionLocation } from '@/types';
 
 /**
- * Dashboard page — the projector-facing view for the live demo.
+ * Dashboard page — live crop prices for one market at a time.
  *
  * Layout:
- *   - Hero header with "Live" indicator
- *   - Grid of PriceCards (7 crops × 3 markets = 21 tiles)
+ *   - Hero header with required location switcher + "Live" indicator
+ *   - Grid of PriceCards (first six crops × selected market)
  *   - Bottom section: MarketMap (left 3/5) + TrendChart (right 2/5)
  *
- * Polling: usePoll(2500) refreshes the `snapshots` prop every 2.5s.
- * Only the `snapshots` prop is re-fetched (via `only` option), not
- * the entire page. This keeps the response small and avoids re-
- * rendering the map/markers on every tick.
- *
- * Sort order: markets first (Adama → Addis Ababa → Jimma), then
- * crops within each market (the CROPS array order). This creates
- * a consistent visual rhythm on the dashboard grid.
+ * Polling: usePoll(2500) refreshes `snapshots` (+ filters) every 2.5s
+ * against the current URL, so `?market=adama` survives poll ticks.
  */
 
 type DashboardProps = {
     snapshots: PriceSnapshot[];
     markets: MarketMarker[];
+    submissionLocations: SubmissionLocation[];
+    filters: {
+        market: MarketSlug;
+    };
 };
 
-export default function Dashboard({ snapshots, markets }: DashboardProps) {
+export default function Dashboard({
+    snapshots,
+    markets,
+    submissionLocations,
+    filters,
+}: DashboardProps) {
     const t = useTranslations();
+    const selectedMarket = filters.market;
 
-    // Update the sidebar breadcrumb to highlight "Dashboard"
     setLayoutProps({
         breadcrumbs: [
             {
                 title: t('Dashboard'),
-                href: dashboard(),
+                href: dashboard.url({ query: { market: selectedMarket } }),
             },
         ],
     });
 
-    // Poll every 2.5s for fresh snapshot data.
-    // - `only: ['snapshots']` — only re-fetch this prop, not markets
-    // - `mode: 'rest'` — don't fire a new request if the previous one hasn't finished
-    // - `keepAlive: true` — keep polling even when the tab is in the background
-    //   (useful for conference demo where the projector tab may be inactive)
-    usePoll(2500, { only: ['snapshots'] }, { mode: 'rest', keepAlive: true });
+    usePoll(
+        2500,
+        { only: ['snapshots', 'filters', 'submissionLocations'] },
+        { mode: 'rest', keepAlive: true },
+    );
 
-    // Sort snapshots by market (Adama → Addis Ababa → Jimma), then by crop.
-    // This creates a consistent grid layout where each market's crops
-    // appear together visually.
-    const ordered = [...snapshots].sort((a, b) => {
-        const marketOrder = ['adama', 'addis_ababa', 'jimma'];
-        const cropOrder = [...CROPS];
-        const marketDiff =
-            marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market);
+    const ordered = [...snapshots]
+        .filter(
+            (snapshot) =>
+                snapshot.market === selectedMarket &&
+                DASHBOARD_CROPS.includes(snapshot.crop),
+        )
+        .sort(
+            (a, b) =>
+                DASHBOARD_CROPS.indexOf(a.crop) -
+                DASHBOARD_CROPS.indexOf(b.crop),
+        );
 
-        if (marketDiff !== 0) {
-            return marketDiff;
-        }
-
-        return cropOrder.indexOf(a.crop) - cropOrder.indexOf(b.crop);
-    });
+    const switchMarket = (value: string): void => {
+        router.get(
+            dashboard.url({ query: { market: value as MarketSlug } }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ['snapshots', 'filters', 'submissionLocations'],
+            },
+        );
+    };
 
     return (
         <>
@@ -77,13 +97,42 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
                         tone="inverse"
                         title={t('Live market prices')}
                         description={t(
-                            'Crowd-backed ETB/quintal · updates every 2.5s · teff, coffee, maize, wheat, sesame, pulses & sorghum across Adama, Addis Ababa, and Jimma',
+                            'Crowd-backed ETB/quintal · updates every 2.5s · showing :location',
+                            { location: t(marketLabel(selectedMarket)) },
                         )}
                         actions={
-                            <span className="inline-flex items-center gap-2 rounded-full bg-background/10 px-3 py-1 text-xs font-medium tracking-wide text-background/80">
-                                <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-                                {t('Live')}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center gap-2 rounded-full bg-background/10 px-2 py-1">
+                                    <MapPin className="ms-1 size-3.5 text-background/70" />
+                                    <Select
+                                        value={selectedMarket}
+                                        onValueChange={switchMarket}
+                                    >
+                                        <SelectTrigger
+                                            aria-label={t('Location')}
+                                            className="h-8 w-[168px] border-0 bg-transparent text-background shadow-none focus-visible:ring-background/30 [&>svg]:text-background/70"
+                                        >
+                                            <SelectValue
+                                                placeholder={t('Location')}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {markets.map((market) => (
+                                                <SelectItem
+                                                    key={market.slug}
+                                                    value={market.slug}
+                                                >
+                                                    {t(marketLabel(market.slug))}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-background/10 px-3 py-1 text-xs font-medium tracking-wide text-background/80">
+                                    <span className="size-1.5 animate-pulse rounded-full bg-primary" />
+                                    {t('Live')}
+                                </span>
+                            </div>
                         }
                     />
                 </PageSection>
@@ -104,10 +153,19 @@ export default function Dashboard({ snapshots, markets }: DashboardProps) {
 
                 <PageSection delay={3} className="grid gap-4 lg:grid-cols-5">
                     <div className="lg:col-span-3">
-                        <MarketMap markets={markets} snapshots={snapshots} />
+                        <MarketMap
+                            markets={markets}
+                            snapshots={snapshots}
+                            submissionLocations={submissionLocations}
+                            selectedMarket={selectedMarket}
+                            onSelectMarket={switchMarket}
+                        />
                     </div>
                     <div className="lg:col-span-2">
-                        <TrendChart snapshots={ordered} />
+                        <TrendChart
+                            snapshots={ordered}
+                            hideMarketLabel
+                        />
                     </div>
                 </PageSection>
             </div>

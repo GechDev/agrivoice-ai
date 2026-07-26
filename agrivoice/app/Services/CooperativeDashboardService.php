@@ -9,6 +9,7 @@ use App\Models\MemberQuery;
 use App\Models\Prediction;
 use App\Models\Report;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class CooperativeDashboardService
@@ -186,7 +187,10 @@ class CooperativeDashboardService
     }
 
     /**
-     * Daily actual vs forecast series for each default crop over trailing 90 days.
+     * Daily actual vs forecast series for each default crop.
+     *
+     * Actuals cover the trailing 90 days. Forecasts start today and look
+     * ahead 20 days — past prediction rows are never surfaced on the chart.
      *
      * @return list<array{
      *     crop: string,
@@ -197,7 +201,8 @@ class CooperativeDashboardService
     public function trends(Cooperative $cooperative): array
     {
         $from = now()->subDays(90)->startOfDay();
-        $until = now()->addDays(30)->endOfDay();
+        $today = now()->startOfDay();
+        $until = now()->addDays(20)->endOfDay();
         $crops = $cooperative->defaultCropEnums();
 
         if ($crops === []) {
@@ -213,13 +218,36 @@ class CooperativeDashboardService
             ->notFlagged()
             ->whereIn('crop', $cropValues)
             ->where('reported_at', '>=', $from)
-            ->get(['crop', 'price', 'reported_at']);
+            ->get(['crop', 'market_id', 'price', 'reported_at']);
+
+        $marketIdsByCrop = $reports
+            ->groupBy(fn (Report $report): string => $report->crop->value)
+            ->map(
+                fn (Collection $cropReports): array => $cropReports
+                    ->pluck('market_id')
+                    ->unique()
+                    ->values()
+                    ->all(),
+            );
 
         /** @var Collection<int, Prediction> $predictions */
-        $predictions = Prediction::query()
-            ->whereIn('crop', $cropValues)
-            ->whereBetween('predicted_for', [$from->toDateString(), $until->toDateString()])
-            ->get(['crop', 'predicted_price', 'predicted_for']);
+        $predictions = collect();
+
+        if ($marketIdsByCrop->isNotEmpty()) {
+            $predictions = Prediction::query()
+                ->whereDate('predicted_for', '>=', $today->toDateString())
+                ->whereDate('predicted_for', '<=', $until->toDateString())
+                ->where(function (Builder $query) use ($marketIdsByCrop): void {
+                    foreach ($marketIdsByCrop as $crop => $marketIds) {
+                        $query->orWhere(
+                            fn (Builder $cropMarketQuery): Builder => $cropMarketQuery
+                                ->where('crop', $crop)
+                                ->whereIn('market_id', $marketIds),
+                        );
+                    }
+                })
+                ->get(['crop', 'market_id', 'predicted_price', 'predicted_for']);
+        }
 
         $actualByCropDate = $reports
             ->groupBy(fn (Report $report): string => $report->crop->value)
@@ -248,15 +276,21 @@ class CooperativeDashboardService
             $dates->push($day->toDateString());
         }
 
+        $todayDate = $today->toDateString();
+
         return collect($crops)
-            ->map(function (Crop $crop) use ($dates, $actualByCropDate, $forecastByCropDate): array {
+            ->map(function (Crop $crop) use ($dates, $todayDate, $actualByCropDate, $forecastByCropDate): array {
                 $actuals = $actualByCropDate->get($crop->value, collect());
                 $forecasts = $forecastByCropDate->get($crop->value, collect());
 
                 $points = $dates
-                    ->map(function (string $date) use ($actuals, $forecasts): ?array {
+                    ->map(function (string $date) use ($todayDate, $actuals, $forecasts): ?array {
                         $actual = $actuals->get($date);
-                        $forecast = $forecasts->get($date);
+                        $forecast = $date >= $todayDate ? $forecasts->get($date) : null;
+
+                        if ($date === $todayDate && $actual !== null && $forecast !== null) {
+                            $forecast = $actual;
+                        }
 
                         if ($actual === null && $forecast === null) {
                             return null;

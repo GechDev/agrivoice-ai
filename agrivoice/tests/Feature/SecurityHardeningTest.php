@@ -2,6 +2,7 @@
 
 use App\Models\Agent;
 use App\Models\Report;
+use App\Models\User;
 use Database\Seeders\MarketSeeder;
 use Illuminate\Http\Middleware\HandleCors;
 
@@ -21,6 +22,8 @@ test('sensitive pages require authentication', function (string $uri) {
     '/cooperative/reports',
     '/cooperative/prices',
     '/cooperative/billing',
+    '/report-price',
+    '/prices',
 ]);
 
 test('public showcase pages are reachable without authentication', function (string $uri) {
@@ -32,7 +35,6 @@ test('public showcase pages are reachable without authentication', function (str
 })->with([
     '/dashboard',
     '/reports',
-    '/report-price',
     '/portal/login',
     '/cooperative/login',
 ]);
@@ -151,6 +153,7 @@ test('cors headers are applied on normal web responses for allowed origins', fun
 
 test('public report submissions are rate limited', function () {
     $this->seed(MarketSeeder::class);
+    $this->actingAs(User::factory()->create());
 
     Agent::query()->firstOrCreate(
         ['name' => 'Public Submission'],

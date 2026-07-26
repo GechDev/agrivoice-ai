@@ -6,6 +6,7 @@ use App\Actions\RegisterCooperative;
 use App\Http\Requests\CooperativeLoginRequest;
 use App\Http\Requests\CooperativeRegisterRequest;
 use App\Models\CooperativeAdmin;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,9 @@ class CooperativeAuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if (! CooperativeAdmin::query()->where('user_id', $user->id)->exists()) {
+        $admin = CooperativeAdmin::query()->where('user_id', $user->id)->first();
+
+        if (! $admin instanceof CooperativeAdmin) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -46,6 +49,10 @@ class CooperativeAuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => 'This account is not a cooperative admin. Use the farmer login instead.',
             ]);
+        }
+
+        if (! Subscription::query()->forCooperative($admin->cooperative_id)->exists()) {
+            return redirect()->route('cooperative.onboarding');
         }
 
         return redirect()->intended(route('cooperative.dashboard'));
@@ -67,7 +74,7 @@ class CooperativeAuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('cooperative.dashboard');
+        return redirect()->route('cooperative.onboarding');
     }
 
     public function destroy(Request $request): RedirectResponse

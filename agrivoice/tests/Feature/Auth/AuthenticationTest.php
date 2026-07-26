@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\CooperativeAdmin;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -20,6 +22,33 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('cooperative admins without a plan are redirected to onboarding after fortify login', function () {
+    $admin = CooperativeAdmin::factory()->owner()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $admin->user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticatedAs($admin->user);
+    $response->assertRedirect(route('cooperative.onboarding'));
+});
+
+test('cooperative admins with a plan are redirected to the cooperative dashboard after fortify login', function () {
+    $admin = CooperativeAdmin::factory()->owner()->create();
+    Subscription::factory()->starter()->create([
+        'cooperative_id' => $admin->cooperative_id,
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $admin->user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticatedAs($admin->user);
+    $response->assertRedirect(route('cooperative.dashboard'));
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

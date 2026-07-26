@@ -31,6 +31,19 @@ enum Crop: string
     case Sorghum = 'sorghum';
 
     /**
+     * Crops shown on the public live dashboard (first six in enum order).
+     *
+     * Sorghum remains in the system for reports/IVR, but the projector
+     * dashboard keeps a six-tile grid for readability.
+     *
+     * @return list<string>
+     */
+    public static function dashboardValues(): array
+    {
+        return array_slice(self::values(), 0, 6);
+    }
+
+    /**
      * Human-readable display label shown in the dashboard and entry form.
      *
      * Kept as a simple PascalCase string rather than pulling from a

@@ -201,6 +201,28 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
         });
     }, [range, selectedTrend]);
 
+    const yDomain = useMemo<[number, number]>(() => {
+        const prices = points.flatMap((point) =>
+            [point.actual, point.forecast].filter(
+                (price): price is number => price !== null,
+            ),
+        );
+
+        if (prices.length === 0) {
+            return [0, 1];
+        }
+
+        const minimum = Math.min(...prices);
+        const maximum = Math.max(...prices);
+        const spread = maximum - minimum;
+        const padding = Math.max(spread * 0.12, maximum * 0.01, 25);
+
+        return [
+            Math.max(0, Math.floor((minimum - padding) / 100) * 100),
+            Math.ceil((maximum + padding) / 100) * 100,
+        ];
+    }, [points]);
+
     if (trends.length === 0) {
         return (
             <Card>
@@ -330,8 +352,9 @@ function TrendPanel({ trends }: { trends: CropTrend[] }) {
                                     />
                                     <YAxis
                                         tickFormatter={(value: number) =>
-                                            `${Math.round(value / 1000)}k`
+                                            `${(value / 1000).toFixed(1)}k`
                                         }
+                                        domain={yDomain}
                                         tickLine={false}
                                         axisLine={false}
                                         width={42}

@@ -50,7 +50,9 @@ class PublicReportController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('report-price');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', __('Report submitted for review.'));
     }
 
     private function resolveReportedAt(string $reportedAt): CarbonInterface

@@ -9,6 +9,7 @@ use App\Models\CooperativeMember;
 use App\Models\Market;
 use App\Models\Report;
 use App\Models\ReportStatusLog;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Policies\ReportPolicy;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -28,6 +29,9 @@ function createReportsCooperativeAdmin(?Cooperative $cooperative = null): array
     CooperativeAdmin::factory()->owner()->create([
         'cooperative_id' => $cooperative->id,
         'user_id' => $admin->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
     ]);
 
     return ['cooperative' => $cooperative, 'admin' => $admin];

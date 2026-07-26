@@ -36,6 +36,9 @@ test('cooperative admin can sign in and reach the cooperative dashboard', functi
         'cooperative_id' => $cooperative->id,
         'user_id' => $user->id,
     ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
+    ]);
 
     $this->post(route('cooperative.login.store'), [
         'email' => 'owner@gmail.com',
@@ -62,7 +65,7 @@ test('non-admin users cannot use the cooperative login', function () {
     $this->assertGuest();
 });
 
-test('cooperative signup requires a gmail address and creates an owner admin', function () {
+test('cooperative signup creates an owner and continues to plan onboarding', function () {
     $this->post(route('cooperative.register.store'), [
         'name' => 'Abebe Bekele',
         'email' => 'abebe.coop@gmail.com',
@@ -70,7 +73,7 @@ test('cooperative signup requires a gmail address and creates an owner admin', f
         'password_confirmation' => 'password',
         'cooperative_name' => 'Jimma Growers Union',
         'region' => 'Oromia',
-    ])->assertRedirect(route('cooperative.dashboard'));
+    ])->assertRedirect(route('cooperative.onboarding'));
 
     $user = User::query()->where('email', 'abebe.coop@gmail.com')->first();
     expect($user)->not->toBeNull();
@@ -79,7 +82,7 @@ test('cooperative signup requires a gmail address and creates an owner admin', f
     $cooperative = Cooperative::query()->where('name', 'Jimma Growers Union')->first();
     expect($cooperative)->not->toBeNull();
     expect(CooperativeAdmin::query()->where('user_id', $user->id)->exists())->toBeTrue();
-    expect(Subscription::query()->forCooperative($cooperative->id)->exists())->toBeTrue();
+    expect(Subscription::query()->forCooperative($cooperative->id)->exists())->toBeFalse();
 });
 
 test('cooperative admin can log out back to the cooperative login', function () {

@@ -25,6 +25,9 @@ export const CROPS: readonly Crop[] = [
     'sorghum',
 ] as const;
 
+/** First six crops shown on the public live dashboard. */
+export const DASHBOARD_CROPS: readonly Crop[] = CROPS.slice(0, 6);
+
 /** Reporter types for the entry form's radio group. */
 export const REPORTER_TYPES: readonly ReporterType[] = [
     'crowd',

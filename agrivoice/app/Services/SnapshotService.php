@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Crop;
+use App\Enums\MarketSlug;
 use App\Enums\ReporterType;
 use App\Models\Market;
 use App\Models\Report;
@@ -56,9 +57,12 @@ class SnapshotService
     public function __construct(private PredictionService $predictionService) {}
 
     /**
-     * Build all crop×market snapshots for the live dashboard.
+     * Build crop×market snapshots for the live dashboard.
      *
-     * Iterates every Crop × Market combination (currently 7 × 3 = 21 tiles).
+     * When `$market` is null, iterates every Crop × Market combination
+     * (currently 7 × 3 = 21 tiles). When a market slug is provided,
+     * only that location's crops are returned (7 tiles).
+     *
      * Pairs with zero reports return price=0, confidence=0, trend=stable —
      * the front-end renders these as "no data" states.
      *
@@ -73,27 +77,39 @@ class SnapshotService
      *     changePercent: float|null
      * }>
      */
-    public function all(): array
+    public function all(?MarketSlug $market = null): array
     {
-        $markets = Market::query()->get()->keyBy(fn (Market $market) => $market->slug->value);
+        $marketsQuery = Market::query()->orderBy('name');
 
-        // One query for the whole dashboard poll instead of 21 (+ 42 trend) queries.
-        /** @var Collection<string, Collection<int, Report>> $grouped */
-        $grouped = Report::query()
+        if ($market instanceof MarketSlug) {
+            $marketsQuery->where('slug', $market->value);
+        }
+
+        $markets = $marketsQuery->get()->keyBy(fn (Market $row) => $row->slug->value);
+
+        // One query for the whole dashboard poll instead of N crop×market queries.
+        $reportsQuery = Report::query()
             ->verified()
             ->notFlagged()
             ->where('reported_at', '>=', now()->subDays(self::LOOKBACK_DAYS))
-            ->orderByDesc('reported_at')
+            ->orderByDesc('reported_at');
+
+        if ($markets->isNotEmpty()) {
+            $reportsQuery->whereIn('market_id', $markets->pluck('id'));
+        }
+
+        /** @var Collection<string, Collection<int, Report>> $grouped */
+        $grouped = $reportsQuery
             ->get()
             ->groupBy(fn (Report $report): string => $report->crop->value.'|'.$report->market_id);
 
         $snapshots = [];
 
         foreach (Crop::cases() as $crop) {
-            foreach ($markets as $market) {
+            foreach ($markets as $row) {
                 /** @var Collection<int, Report> $pairReports */
-                $pairReports = $grouped->get($crop->value.'|'.$market->id, collect());
-                $snapshots[] = $this->snapshotFromReports($crop, $market, $pairReports);
+                $pairReports = $grouped->get($crop->value.'|'.$row->id, collect());
+                $snapshots[] = $this->snapshotFromReports($crop, $row, $pairReports);
             }
         }
 

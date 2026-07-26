@@ -5,13 +5,15 @@ import type { PriceSnapshot } from '@/types';
 
 type TrendChartProps = {
     snapshots: PriceSnapshot[];
+    /** When true, omit the market suffix from row labels (single-location view). */
+    hideMarketLabel?: boolean;
 };
 
 /**
- * Horizontal bar chart showing 7-day price trends for all crop×market pairs.
+ * Horizontal bar chart showing 7-day price trends for crop×market pairs.
  *
  * Each row shows:
- * - Crop + market label (left)
+ * - Crop (+ market) label (left)
  * - Horizontal bar (middle) — length proportional to changePercent
  * - Percentage value (right)
  *
@@ -31,7 +33,10 @@ type TrendChartProps = {
  * This was a deliberate choice: the starter kit has no chart library,
  * and a full D3/Recharts setup would be overkill for simple bars.
  */
-export function TrendChart({ snapshots }: TrendChartProps) {
+export function TrendChart({
+    snapshots,
+    hideMarketLabel = false,
+}: TrendChartProps) {
     const t = useTranslations();
     // Only include snapshots that have trend data (changePercent !== null)
     const withChange = snapshots.filter((s) => s.changePercent !== null);
@@ -64,6 +69,9 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                             (Math.abs(change) / maxAbs) * 100,
                         );
                         const positive = change >= 0;
+                        const label = hideMarketLabel
+                            ? t(cropLabel(snapshot.crop))
+                            : `${t(cropLabel(snapshot.crop))} · ${t(marketLabel(snapshot.market))}`;
 
                         return (
                             <li
@@ -71,8 +79,7 @@ export function TrendChart({ snapshots }: TrendChartProps) {
                                 className="grid grid-cols-[7rem_1fr_3.5rem] items-center gap-3 text-sm"
                             >
                                 <span className="truncate text-muted-foreground">
-                                    {t(cropLabel(snapshot.crop))} ·{' '}
-                                    {t(marketLabel(snapshot.market))}
+                                    {label}
                                 </span>
                                 <div className="relative h-2 overflow-hidden rounded-full bg-muted">
                                     <div

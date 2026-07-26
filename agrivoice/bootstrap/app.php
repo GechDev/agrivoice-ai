@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureAgentIsAuthenticated;
 use App\Http\Middleware\EnsureCooperativeAdmin;
+use App\Http\Middleware\EnsureCooperativeIsOnboarded;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
@@ -58,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'agent' => EnsureAgentIsAuthenticated::class,
             'cooperative.admin' => EnsureCooperativeAdmin::class,
+            'cooperative.onboarded' => EnsureCooperativeIsOnboarded::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
