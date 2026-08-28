@@ -1,32 +1,15 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, setLayoutProps, useForm } from '@inertiajs/react';
 import {
     Bean,
-    CheckCircle2,
     Coffee,
     Leaf,
     Nut,
     Sprout,
     Wheat,
 } from 'lucide-react';
-import { useState } from 'react';
 
-import AppLogo from '@/components/app-logo';
-import { AppearanceToggle } from '@/components/appearance-toggle';
 import InputError from '@/components/input-error';
-import { LanguageSwitcher } from '@/components/language-switcher';
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -39,7 +22,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/hooks/use-translations';
 import { CROPS, cropLabel, todayAsInputValue } from '@/lib/agrivoice';
-import { home } from '@/routes';
+import { reportPrice } from '@/routes';
 import { store } from '@/routes/report-price';
 import type { Crop, Market as MarketType, MarketOption } from '@/types';
 
@@ -59,9 +42,17 @@ type ReportPriceProps = {
 
 export default function ReportPrice({ markets }: ReportPriceProps) {
     const t = useTranslations();
-    const [showDialog, setShowDialog] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    setLayoutProps({
+        breadcrumbs: [
+            {
+                title: t('Report a price'),
+                href: reportPrice(),
+            },
+        ],
+    });
+
+    const { data, setData, post, processing, errors } = useForm({
         crop: 'teff' as Crop,
         market: (markets[0]?.slug ?? 'adama') as MarketType,
         price: '',
@@ -70,48 +61,15 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
 
     const submit = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault();
-        post(store.url(), {
-            onSuccess: () => {
-                setShowDialog(true);
-            },
-        });
-    };
-
-    const closeDialog = (): void => {
-        setShowDialog(false);
-        reset();
+        post(store.url());
     };
 
     return (
         <>
             <Head title={t('Report a price')} />
 
-            <div className="min-h-dvh bg-muted/30">
-                <header className="border-b border-border/70 bg-background/85 backdrop-blur-md">
-                    <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-4 sm:px-6">
-                        <div className="flex min-w-0 items-center">
-                            <Link
-                                href={home()}
-                                className="inline-flex items-center"
-                            >
-                                <AppLogo size="md" />
-                            </Link>
-                            <span
-                                aria-hidden
-                                className="mx-3 hidden h-4 w-px bg-border sm:block"
-                            />
-                            <span className="hidden truncate text-sm font-medium text-muted-foreground sm:inline">
-                                {t('Report a price')}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <AppearanceToggle />
-                            <LanguageSwitcher />
-                        </div>
-                    </div>
-                </header>
-
-                <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+            <div className="flex flex-1 bg-muted/30">
+                <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
                     <div className="mb-8 max-w-xl">
                         <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
                             {t('Report a price')}
@@ -269,41 +227,6 @@ export default function ReportPrice({ markets }: ReportPriceProps) {
                     </form>
                 </main>
             </div>
-
-            <Dialog open={showDialog} onOpenChange={closeDialog}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader className="text-center sm:text-center">
-                        <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
-                            <CheckCircle2 className="size-6 text-primary" />
-                        </span>
-                        <DialogTitle className="mt-4 text-xl">
-                            {t('Report submitted')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm leading-relaxed">
-                            {t(
-                                'Your price report has been received and is pending verification. A moderator will review it before it appears on the live dashboard.',
-                            )}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <Alert variant="default" className="text-left">
-                        <AlertTitle className="text-sm font-semibold">
-                            {t('What happens next?')}
-                        </AlertTitle>
-                        <AlertDescription className="mt-1 text-xs leading-relaxed">
-                            {t(
-                                'Our team checks each crowd-sourced report for accuracy. Once verified, it will contribute to the market snapshot for that crop and location.',
-                            )}
-                        </AlertDescription>
-                    </Alert>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                        <Button onClick={closeDialog}>
-                            {t('Submit another')}
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </>
     );
 }

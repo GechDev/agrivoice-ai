@@ -6,6 +6,7 @@ use App\Models\CooperativeAdmin;
 use App\Models\CooperativeMember;
 use App\Models\Market;
 use App\Models\Report;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -36,6 +37,9 @@ function createPricesCooperativeAdmin(array $cooperativeAttributes = []): array
     CooperativeAdmin::factory()->owner()->create([
         'cooperative_id' => $cooperative->id,
         'user_id' => $admin->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
     ]);
 
     return compact('cooperative', 'admin', 'member');

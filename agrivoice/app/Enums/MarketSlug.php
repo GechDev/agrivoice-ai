@@ -70,4 +70,63 @@ enum MarketSlug: string
             self::Jimma => ['latitude' => 7.6733, 'longitude' => 36.8344],
         };
     }
+
+    /**
+     * Approximate reporting catchment radius in kilometres around the market hub.
+     *
+     * Sized to the city/peri-urban footprint so map pins stay inside the
+     * selected market area rather than drifting into neighbouring towns.
+     */
+    public function catchmentRadiusKm(): float
+    {
+        return match ($this) {
+            self::Adama => 26.0,
+            self::AddisAbaba => 16.0,
+            self::Jimma => 30.0,
+        };
+    }
+
+    /**
+     * Deterministic fake submission pins inside this market's catchment.
+     *
+     * Reports do not store GPS yet, so the dashboard visualises where
+     * crowd reports are treated as coming from: 20–40 points scattered
+     * around the market hub. The seed is derived from the slug so the
+     * cloud stays stable across polls.
+     *
+     * @return list<array{id: int, latitude: float, longitude: float, crop: string}>
+     */
+    public function submissionLocations(): array
+    {
+        $seed = crc32('agrivoice-submissions-'.$this->value);
+        mt_srand($seed);
+
+        $count = mt_rand(20, 40);
+        $center = $this->coordinates();
+        $radiusKm = $this->catchmentRadiusKm();
+        $crops = Crop::dashboardValues();
+        $points = [];
+
+        for ($index = 1; $index <= $count; $index++) {
+            $angle = (mt_rand() / mt_getrandmax()) * 2 * M_PI;
+            // sqrt keeps the disk uniform instead of clustering at the centre
+            $distanceKm = sqrt(mt_rand() / mt_getrandmax()) * $radiusKm;
+            $latOffset = ($distanceKm / 111.32) * cos($angle);
+            $lngScale = 111.32 * cos(deg2rad($center['latitude']));
+            $lngOffset = $lngScale > 0.0
+                ? ($distanceKm / $lngScale) * sin($angle)
+                : 0.0;
+
+            $points[] = [
+                'id' => $index,
+                'latitude' => round($center['latitude'] + $latOffset, 6),
+                'longitude' => round($center['longitude'] + $lngOffset, 6),
+                'crop' => $crops[($index - 1) % count($crops)],
+            ];
+        }
+
+        mt_srand();
+
+        return $points;
+    }
 }

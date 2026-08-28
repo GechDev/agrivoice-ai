@@ -4,10 +4,12 @@ use App\Http\Controllers\CooperativeAuthController;
 use App\Http\Controllers\CooperativeBillingController;
 use App\Http\Controllers\CooperativeDashboardController;
 use App\Http\Controllers\CooperativeMemberController;
+use App\Http\Controllers\CooperativeOnboardingController;
 use App\Http\Controllers\CooperativePriceController;
 use App\Http\Controllers\CooperativeReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IvrController;
+use App\Http\Controllers\PriceController;
 use App\Http\Controllers\PublicReportController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Redirect;
@@ -45,6 +47,13 @@ Route::post('/cooperative/logout', [CooperativeAuthController::class, 'destroy']
     ->name('cooperative.logout');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/prices', [PriceController::class, 'index'])->name('prices.index');
+
+    Route::get('/report-price', [PublicReportController::class, 'create'])->name('report-price');
+    Route::post('/report-price', [PublicReportController::class, 'store'])
+        ->middleware('throttle:public-report')
+        ->name('report-price.store');
+
     Route::post('/reports/{report}/flag', [ReportController::class, 'flag'])
         ->middleware('throttle:20,1')
         ->name('reports.flag');
@@ -53,32 +62,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/ivr/speak', [IvrController::class, 'speak'])->name('ivr.speak');
 
     Route::middleware('cooperative.admin')->prefix('cooperative')->name('cooperative.')->group(function () {
-        Route::get('/dashboard', CooperativeDashboardController::class)->name('dashboard');
+        Route::get('/onboarding', [CooperativeOnboardingController::class, 'create'])->name('onboarding');
+        Route::post('/onboarding', [CooperativeOnboardingController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('onboarding.store');
 
-        Route::get('/reports', [CooperativeReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/export', [CooperativeReportController::class, 'export'])->name('reports.export');
-        Route::patch('/reports/{report}/status', [CooperativeReportController::class, 'updateStatus'])->name('reports.status');
+        Route::middleware('cooperative.onboarded')->group(function () {
+            Route::get('/dashboard', CooperativeDashboardController::class)->name('dashboard');
 
-        Route::get('/prices', [CooperativePriceController::class, 'index'])->name('prices.index');
-        Route::get('/prices/download', [CooperativePriceController::class, 'download'])->name('prices.download');
+            Route::get('/reports', [CooperativeReportController::class, 'index'])->name('reports.index');
+            Route::get('/reports/export', [CooperativeReportController::class, 'export'])->name('reports.export');
+            Route::patch('/reports/{report}/status', [CooperativeReportController::class, 'updateStatus'])->name('reports.status');
 
-        Route::get('/billing', [CooperativeBillingController::class, 'index'])->name('billing.index');
-        Route::patch('/billing/subscriptions/{subscription}/plan', [CooperativeBillingController::class, 'updatePlan'])->name('billing.plan');
-        Route::patch('/billing/subscriptions/{subscription}/payment-method', [CooperativeBillingController::class, 'updatePaymentMethod'])->name('billing.payment-method');
-        Route::get('/billing/invoices/{invoice}/download', [CooperativeBillingController::class, 'downloadInvoice'])->name('billing.invoices.download');
+            Route::get('/prices', [CooperativePriceController::class, 'index'])->name('prices.index');
+            Route::get('/prices/download', [CooperativePriceController::class, 'download'])->name('prices.download');
 
-        Route::get('/members', [CooperativeMemberController::class, 'index'])->name('members.index');
-        Route::post('/members', [CooperativeMemberController::class, 'store'])->name('members.store');
-        Route::post('/members/bulk-invite', [CooperativeMemberController::class, 'bulkInvite'])->name('members.bulk-invite');
-        Route::get('/members/{member}', [CooperativeMemberController::class, 'show'])->name('members.show');
-        Route::patch('/members/{member}/remove', [CooperativeMemberController::class, 'remove'])->name('members.remove');
+            Route::get('/billing', [CooperativeBillingController::class, 'index'])->name('billing.index');
+            Route::patch('/billing/subscriptions/{subscription}/plan', [CooperativeBillingController::class, 'updatePlan'])->name('billing.plan');
+            Route::patch('/billing/subscriptions/{subscription}/payment-method', [CooperativeBillingController::class, 'updatePaymentMethod'])->name('billing.payment-method');
+            Route::get('/billing/invoices/{invoice}/download', [CooperativeBillingController::class, 'downloadInvoice'])->name('billing.invoices.download');
+
+            Route::get('/members', [CooperativeMemberController::class, 'index'])->name('members.index');
+            Route::post('/members', [CooperativeMemberController::class, 'store'])->name('members.store');
+            Route::post('/members/bulk-invite', [CooperativeMemberController::class, 'bulkInvite'])->name('members.bulk-invite');
+            Route::get('/members/{member}', [CooperativeMemberController::class, 'show'])->name('members.show');
+            Route::patch('/members/{member}/remove', [CooperativeMemberController::class, 'remove'])->name('members.remove');
+        });
     });
 });
 
 require __DIR__.'/portal.php';
 require __DIR__.'/settings.php';
-
-Route::get('/report-price', [PublicReportController::class, 'create'])->name('report-price');
-Route::post('/report-price', [PublicReportController::class, 'store'])
-    ->middleware('throttle:public-report')
-    ->name('report-price.store');

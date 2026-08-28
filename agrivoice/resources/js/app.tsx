@@ -15,8 +15,7 @@ createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
-                return null;
-            case name === 'report-price':
+            case name === 'Cooperative/Onboarding':
                 return null;
             // Agents are not Laravel-authenticated users, so the portal brings
             // its own chrome instead of the app shell's account menu.

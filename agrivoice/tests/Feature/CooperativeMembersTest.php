@@ -9,6 +9,7 @@ use App\Models\CooperativeMember;
 use App\Models\Market;
 use App\Models\MemberQuery;
 use App\Models\Report;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
@@ -29,6 +30,9 @@ function createCooperativeAdmin(?Cooperative $cooperative = null): array
     CooperativeAdmin::factory()->owner()->create([
         'cooperative_id' => $cooperative->id,
         'user_id' => $admin->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
     ]);
 
     return ['cooperative' => $cooperative, 'admin' => $admin];

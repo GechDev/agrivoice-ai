@@ -46,12 +46,13 @@ export default function AppLogo({
                     onDark ? 'ring-white/25' : 'ring-border/60',
                     sizes.mark,
                 )}
+                {...(showName ? { 'aria-hidden': true } : {})}
             />
             {showName ? (
                 <span
                     className={cn(
                         'truncate font-semibold tracking-tight',
-                        onDark ? 'text-background' : 'text-sidebar-foreground',
+                        onDark ? 'text-background' : 'text-foreground',
                         sizes.name,
                         nameClassName,
                     )}

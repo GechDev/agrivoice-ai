@@ -11,6 +11,7 @@ use App\Models\Market;
 use App\Models\MemberQuery;
 use App\Models\Prediction;
 use App\Models\Report;
+use App\Models\Subscription;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -32,6 +33,7 @@ test('authenticated users without a cooperative admin record receive 403', funct
 
 test('cooperative admins receive the dashboard with immediate props and deferred trends', function () {
     $market = Market::factory()->adama()->create();
+    $unreportedMarket = Market::factory()->addisAbaba()->create();
     $cooperative = Cooperative::factory()->teffOnly()->create([
         'name' => 'Alpha Cooperative',
         'region' => 'Oromia',
@@ -40,6 +42,9 @@ test('cooperative admins receive the dashboard with immediate props and deferred
     CooperativeAdmin::factory()->owner()->create([
         'cooperative_id' => $cooperative->id,
         'user_id' => $admin->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
     ]);
 
     $member = CooperativeMember::factory()->active()->create([
@@ -51,7 +56,7 @@ test('cooperative admins receive the dashboard with immediate props and deferred
         'crop' => Crop::Teff,
         'market_id' => $market->id,
         'price' => 10_000,
-        'reported_at' => now()->subHour(),
+        'reported_at' => now()->startOfDay()->addHour(),
         'status' => ReportStatus::Verified,
         'is_flagged' => false,
     ]);
@@ -75,7 +80,17 @@ test('cooperative admins receive the dashboard with immediate props and deferred
     Prediction::factory()->create([
         'crop' => Crop::Teff,
         'market_id' => $market->id,
-        'predicted_price' => 10_500,
+        'predicted_price' => 10_035,
+        'predicted_for' => now()->toDateString(),
+        'trend' => Trend::Up,
+        'confidence_score' => 80,
+        'generated_at' => now()->subHour(),
+    ]);
+
+    Prediction::factory()->create([
+        'crop' => Crop::Teff,
+        'market_id' => $unreportedMarket->id,
+        'predicted_price' => 99_999,
         'predicted_for' => now()->toDateString(),
         'trend' => Trend::Up,
         'confidence_score' => 80,
@@ -112,10 +127,14 @@ test('cooperative admins receive the dashboard with immediate props and deferred
                 ->where('trends.0.points', function ($points) {
                     $points = collect($points);
                     $today = $points->firstWhere('date', now()->toDateString());
+                    $pastWithForecast = $points
+                        ->filter(fn ($point) => $point['date'] < now()->toDateString()
+                            && $point['forecast'] !== null);
 
                     return $today !== null
                         && (float) $today['actual'] === 10000.0
-                        && (float) $today['forecast'] === 10500.0;
+                        && (float) $today['forecast'] === 10000.0
+                        && $pastWithForecast->isEmpty();
                 })
             )
         );
@@ -131,6 +150,9 @@ test('cooperative dashboard isolates prices activity and trends across cooperati
     CooperativeAdmin::factory()->owner()->create([
         'cooperative_id' => $coopA->id,
         'user_id' => $adminA->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $coopA->id,
     ]);
 
     $memberA = CooperativeMember::factory()->active()->create([
@@ -186,6 +208,14 @@ test('cooperative dashboard isolates prices activity and trends across cooperati
         'generated_at' => now()->subDays(2),
     ]);
 
+    Prediction::factory()->create([
+        'crop' => Crop::Teff,
+        'market_id' => $market->id,
+        'predicted_price' => 12_040,
+        'predicted_for' => now()->toDateString(),
+        'generated_at' => now()->subHour(),
+    ]);
+
     $this->actingAs($adminA);
 
     $this->get(route('cooperative.dashboard'))
@@ -203,15 +233,23 @@ test('cooperative dashboard isolates prices activity and trends across cooperati
             ->loadDeferredProps(fn (Assert $reload) => $reload
                 ->has('trends', 1)
                 ->where('trends.0.points', function ($points) {
-                    $prices = collect($points)
+                    $points = collect($points);
+                    $prices = $points
                         ->pluck('actual')
                         ->filter()
                         ->map(fn ($price) => (float) $price)
                         ->values();
+                    $today = $points->firstWhere('date', now()->toDateString());
+                    $pastWithForecast = $points
+                        ->filter(fn ($point) => $point['date'] < now()->toDateString()
+                            && $point['forecast'] !== null);
 
                     return $prices->contains(12000.0)
                         && ! $prices->contains(99999.0)
-                        && ! $prices->contains(88888.0);
+                        && ! $prices->contains(88888.0)
+                        && $pastWithForecast->isEmpty()
+                        && $today !== null
+                        && (float) $today['forecast'] === 12040.0;
                 })
             )
         );
@@ -224,6 +262,9 @@ test('prices omit groups when the cooperative has no verified reports in the cur
     CooperativeAdmin::factory()->create([
         'cooperative_id' => $cooperative->id,
         'user_id' => $admin->id,
+    ]);
+    Subscription::factory()->create([
+        'cooperative_id' => $cooperative->id,
     ]);
     $member = CooperativeMember::factory()->active()->create([
         'cooperative_id' => $cooperative->id,

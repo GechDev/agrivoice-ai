@@ -42,8 +42,8 @@ class Market extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('dashboard.markets'));
-        static::deleted(fn () => Cache::forget('dashboard.markets'));
+        static::saved(fn () => Cache::forget('dashboard.markets.v2'));
+        static::deleted(fn () => Cache::forget('dashboard.markets.v2'));
     }
 
     /**

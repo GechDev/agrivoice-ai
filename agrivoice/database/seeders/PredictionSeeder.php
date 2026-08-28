@@ -26,8 +26,8 @@ class PredictionSeeder extends Seeder
 
         foreach (Crop::cases() as $crop) {
             foreach ($markets as $market) {
-                for ($daysAgo = 30; $daysAgo >= 0; $daysAgo--) {
-                    $date = Carbon::today()->subDays($daysAgo);
+                for ($daysAhead = 0; $daysAhead <= 30; $daysAhead++) {
+                    $date = Carbon::today()->addDays($daysAhead);
 
                     Prediction::query()->updateOrCreate(
                         [
@@ -39,7 +39,7 @@ class PredictionSeeder extends Seeder
                             'predicted_price' => fake()->numberBetween(9_000, 18_000),
                             'trend' => fake()->randomElement(Trend::cases()),
                             'confidence_score' => fake()->numberBetween(50, 90),
-                            'generated_at' => $date->copy()->subDay(),
+                            'generated_at' => now()->subHour(),
                         ],
                     );
                 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Crop;
+use App\Enums\MarketSlug;
 use App\Enums\ReporterType;
 use App\Enums\Trend;
 use App\Models\Agent;
@@ -115,4 +116,15 @@ test('prediction service returns stable when data is thin', function () {
 
     expect($result['trend'])->toBe(Trend::Stable)
         ->and($result['changePercent'])->toBeNull();
+});
+
+test('all snapshots can be scoped to a single market location', function () {
+    Market::factory()->adama()->create();
+    Market::factory()->addisAbaba()->create();
+    Market::factory()->jimma()->create();
+
+    $snapshots = app(SnapshotService::class)->all(MarketSlug::Adama);
+
+    expect($snapshots)->toHaveCount(7)
+        ->and(collect($snapshots)->pluck('market')->unique()->all())->toBe(['adama']);
 });

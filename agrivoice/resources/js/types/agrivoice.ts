@@ -49,6 +49,21 @@ export interface PriceSnapshot {
     changePercent: number | null;
 }
 
+export interface PriceHistoryPoint {
+    date: string;
+    price: number;
+}
+
+export interface PriceExplorerFilters {
+    crop: Crop | null;
+    market: MarketSlug | null;
+    trend: Trend | null;
+    sort: 'crop' | 'market' | 'price' | 'change' | 'confidence' | 'updated';
+    direction: 'asc' | 'desc';
+    chart_crop: Crop | null;
+    chart_market: MarketSlug | null;
+}
+
 /**
  * Reference data for a market location on the Leaflet map.
  *
@@ -62,6 +77,22 @@ export interface MarketMarker {
     region: string;
     latitude: number;
     longitude: number;
+    /** Approximate reporting radius used to scatter submission pins */
+    catchmentRadiusKm?: number;
+}
+
+/**
+ * A visualised crowd-report pin inside the selected market catchment.
+ *
+ * Reports do not store GPS yet — these points are deterministic stand-ins
+ * so the dashboard map can show where submissions are treated as coming from.
+ */
+export interface SubmissionLocation {
+    id: number;
+    latitude: number;
+    longitude: number;
+    /** Crop represented by this submission pin */
+    crop: Crop;
 }
 
 /**

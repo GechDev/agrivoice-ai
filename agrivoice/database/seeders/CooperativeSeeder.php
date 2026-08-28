@@ -17,7 +17,12 @@ class CooperativeSeeder extends Seeder
             ['name' => 'Oromia Coffee Growers'],
             [
                 'region' => 'Oromia',
-                'default_crops' => [Crop::Coffee->value, Crop::Teff->value],
+                'default_crops' => [
+                    Crop::Coffee->value,
+                    Crop::Teff->value,
+                    Crop::Maize->value,
+                    Crop::Wheat->value,
+                ],
             ],
         );
 

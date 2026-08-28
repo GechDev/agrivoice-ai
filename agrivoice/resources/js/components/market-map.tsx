@@ -1,62 +1,75 @@
 /**
- * Interactive Leaflet map showing all tracked markets with price popups.
+ * Interactive Leaflet map for the selected market catchment.
  *
- * Each market gets a marker at its geographic coordinates. Clicking a marker
- * opens a popup listing every crop's latest price, confidence score, and
- * report count for that market. The map auto-fits bounds to encompass all
- * markers with padding, so it works whether there are 1 or 10 markets.
+ * Shows:
+ * - One hub marker on the selected market centre
+ * - 20–40 submission pins scattered inside that market's catchment
+ * - Dim hub markers for the other markets (click to switch location)
  *
- * Design decisions:
- * - `scrollWheelZoom: false` prevents accidental zoom when scrolling the dashboard.
- * - OpenStreetMap tiles (map imagery only — no app data API; allowlisted in CSP).
- * - Marker icons are imported from the leaflet package and merged into
- *   `L.Icon.Default` to fix the well-known webpack/vite bundling issue.
- * - Price/snapshot data is Inertia props from DashboardController — never fetched
- *   from a public REST endpoint.
- * - Markers are managed via a `L.LayerGroup` — on each props update the layer
- *   is cleared and rebuilt rather than diffing, which is fine for ≤10 markets.
- *
- * Props come from DashboardController via PriceSnapshotResource and
- * MarketMarkerResource. The snapshots array is pre-grouped by market in the
- * `useMemo` below to avoid O(n²) lookups during marker creation.
+ * Bounds always fit the selected market's submission cloud so the
+ * visible map area matches the selected region.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { useTranslations } from '@/hooks/use-translations';
 import { cropLabel, formatPrice, marketLabel } from '@/lib/agrivoice';
-import type { MarketMarker, PriceSnapshot } from '@/types';
-
-/**
- * Fix Leaflet's default marker icons when bundled by Vite/Webpack.
- * Without this, markers appear as broken images because the default
- * icon URLs point to a path that doesn't exist in the bundle.
- */
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-});
+import type {
+    MarketMarker,
+    MarketSlug,
+    PriceSnapshot,
+    SubmissionLocation,
+} from '@/types';
 
 type MarketMapProps = {
     markets: MarketMarker[];
     snapshots: PriceSnapshot[];
+    submissionLocations: SubmissionLocation[];
+    selectedMarket: MarketSlug;
+    onSelectMarket?: (market: MarketSlug) => void;
 };
 
-export function MarketMap({ markets, snapshots }: MarketMapProps) {
+function hubIcon(selected: boolean): L.DivIcon {
+    const fill = selected ? '#2f6b3a' : '#6b7280';
+    const size = selected ? 36 : 28;
+
+    return L.divIcon({
+        className: 'av-map-hub-icon',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size],
+        popupAnchor: [0, -size + 4],
+        html: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="${fill}" stroke="#fff" stroke-width="1.5" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5" fill="#fff"/>
+        </svg>`,
+    });
+}
+
+function submissionIcon(): L.DivIcon {
+    return L.divIcon({
+        className: 'av-map-submission-icon',
+        iconSize: [18, 18],
+        iconAnchor: [9, 18],
+        popupAnchor: [0, -16],
+        html: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#ef6c00" stroke="#fff" stroke-width="1.25" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.25" fill="#fff"/>
+        </svg>`,
+    });
+}
+
+export function MarketMap({
+    markets,
+    snapshots,
+    submissionLocations,
+    selectedMarket,
+    onSelectMarket,
+}: MarketMapProps) {
     const t = useTranslations();
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<L.LayerGroup | null>(null);
 
-    /**
-     * Pre-group snapshots by market slug so marker creation is O(n) instead of O(n²).
-     * The map is rebuilt from scratch on every props change (see useEffect below),
-     * which is acceptable for the small number of markets in this demo.
-     */
     const snapshotsByMarket = useMemo(() => {
         const map = new Map<string, PriceSnapshot[]>();
 
@@ -69,14 +82,11 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         return map;
     }, [snapshots]);
 
-    /**
-     * Initialize the Leaflet map once on mount. The empty dependency array
-     * ensures this only runs a single time — subsequent re-renders update
-     * markers via the second useEffect, not the map instance itself.
-     *
-     * Centered on Ethiopia (8.5°N, 38.5°E) at zoom level 6, which shows
-     * all three markets (Adama, Addis Ababa, Jimma) in a single view.
-     */
+    const selected = useMemo(
+        () => markets.find((market) => market.slug === selectedMarket) ?? null,
+        [markets, selectedMarket],
+    );
+
     useEffect(() => {
         if (!containerRef.current || mapRef.current) {
             return;
@@ -103,32 +113,53 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
         };
     }, []);
 
-    /**
-     * Rebuild all markers whenever markets or snapshots change.
-     * Clears the entire layer group and re-creates markers from scratch.
-     * Each marker's popup contains an HTML table of crop prices, confidence,
-     * and report count. After all markers are added, fitBounds zooms the
-     * map to show all points with padding.
-     */
     useEffect(() => {
         const map = mapRef.current;
         const layer = markersRef.current;
 
-        if (!map || !layer) {
+        if (!map || !layer || !selected) {
             return;
         }
 
         layer.clearLayers();
 
-        const points: L.LatLngTuple[] = [];
         const collecting = t('Collecting data');
         const confLabel = t('conf');
         const reportsLabel = t('reports');
+        const cropFieldLabel = t('Crop');
+        const priceFieldLabel = t('Price');
+        const boundsPoints: L.LatLngTuple[] = [];
+        const reportPin = submissionIcon();
+        const selectedSnapshots = snapshotsByMarket.get(selectedMarket) ?? [];
+
+        for (const point of submissionLocations) {
+            const snapshot = selectedSnapshots.find(
+                (candidate) => candidate.crop === point.crop,
+            );
+            const cropName = t(cropLabel(point.crop));
+            const price =
+                snapshot && snapshot.reportCount > 0
+                    ? `${formatPrice(snapshot.price)} ${t('ETB/q')}`
+                    : collecting;
+            const marker = L.marker([point.latitude, point.longitude], {
+                icon: reportPin,
+                title: `${cropName}: ${price}`,
+                keyboard: false,
+                riseOnHover: true,
+            }).bindPopup(
+                `<div style="min-width:160px"><strong>${t('Report submission')}</strong><br/><span style="color:#666">${t(marketLabel(selectedMarket))} · ${selected.region}</span><br/><br/><strong>${cropFieldLabel}:</strong> ${cropName}<br/><strong>${priceFieldLabel}:</strong> ${price}</div>`,
+            );
+
+            layer.addLayer(marker);
+            boundsPoints.push([point.latitude, point.longitude]);
+        }
 
         for (const market of markets) {
             const marketSnapshots = snapshotsByMarket.get(market.slug) ?? [];
             const marketName = t(marketLabel(market.slug));
+            const isSelected = selectedMarket === market.slug;
             const lines = marketSnapshots
+                .filter((s) => s.market === market.slug)
                 .map((s) => {
                     const price =
                         s.reportCount === 0
@@ -140,22 +171,40 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
                 .join('<br/>');
 
             const marker = L.marker([market.latitude, market.longitude], {
+                icon: hubIcon(isSelected),
                 title: marketName,
+                zIndexOffset: isSelected ? 1000 : 0,
             }).bindPopup(
                 `<div style="min-width:160px"><strong>${marketName}</strong><br/><span style="color:#666">${market.region}</span><br/><br/>${lines || collecting}</div>`,
             );
 
+            marker.on('click', () => {
+                onSelectMarket?.(market.slug);
+            });
+
             layer.addLayer(marker);
-            points.push([market.latitude, market.longitude]);
+
+            if (isSelected) {
+                boundsPoints.push([market.latitude, market.longitude]);
+            }
         }
 
-        if (points.length > 0) {
-            map.fitBounds(L.latLngBounds(points), {
-                padding: [40, 40],
-                maxZoom: 7,
+        if (boundsPoints.length > 0) {
+            map.fitBounds(L.latLngBounds(boundsPoints), {
+                padding: [36, 36],
+                maxZoom: 12,
+                animate: true,
             });
         }
-    }, [markets, snapshotsByMarket, t]);
+    }, [
+        markets,
+        snapshotsByMarket,
+        submissionLocations,
+        selected,
+        selectedMarket,
+        onSelectMarket,
+        t,
+    ]);
 
     return (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-md">
@@ -164,7 +213,11 @@ export function MarketMap({ markets, snapshots }: MarketMapProps) {
                     {t('Market map')}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                    {[t('Adama'), t('Addis Ababa'), t('Jimma')].join(' · ')}
+                    {t('Report submissions in :location', {
+                        location: t(marketLabel(selectedMarket)),
+                    })}
+                    {' · '}
+                    {submissionLocations.length} {t('pins')}
                 </p>
             </div>
             <div ref={containerRef} className="h-[320px] w-full md:h-[400px]" />

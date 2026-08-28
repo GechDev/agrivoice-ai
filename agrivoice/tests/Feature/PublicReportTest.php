@@ -5,12 +5,14 @@ use App\Enums\ReportStatus;
 use App\Models\Agent;
 use App\Models\Market;
 use App\Models\Report;
+use App\Models\User;
 use App\Services\SnapshotService;
 use Database\Seeders\MarketSeeder;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function (): void {
     $this->seed(MarketSeeder::class);
+    $this->actingAs(User::factory()->create());
 
     Agent::query()->firstOrCreate(
         ['name' => 'Public Submission'],
@@ -18,7 +20,7 @@ beforeEach(function (): void {
     );
 });
 
-test('the report-price page renders the form with markets', function () {
+test('an authenticated farmer can open the report-price page', function () {
     $this->get(route('report-price'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
@@ -27,13 +29,21 @@ test('the report-price page renders the form with markets', function () {
         );
 });
 
-test('a valid public submission creates a pending report and redirects back', function () {
+test('a guest cannot open or submit the report-price form', function () {
+    auth()->logout();
+
+    $this->get(route('report-price'))->assertRedirect(route('login'));
+    $this->post(route('report-price.store'))->assertRedirect(route('login'));
+});
+
+test('a valid farmer submission creates a pending report and redirects to the dashboard', function () {
     $this->post(route('report-price.store'), [
         'crop' => 'teff',
         'market' => 'adama',
         'price' => '8500',
         'reported_at' => now()->toDateString(),
-    ])->assertRedirect(route('report-price'));
+    ])->assertRedirect(route('dashboard'))
+        ->assertSessionHas('success', 'Report submitted for review.');
 
     $report = Report::sole();
 

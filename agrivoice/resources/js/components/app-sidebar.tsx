@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     ChartNoAxesCombined,
+    CircleDollarSign,
     ClipboardList,
     CreditCard,
     LayoutGrid,
@@ -14,6 +15,7 @@ import { index as membersIndex } from '@/actions/App/Http/Controllers/Cooperativ
 import { index as cooperativePricesIndex } from '@/actions/App/Http/Controllers/CooperativePriceController';
 import { index as cooperativeReportsIndex } from '@/actions/App/Http/Controllers/CooperativeReportController';
 import { index as ivrIndex } from '@/actions/App/Http/Controllers/IvrController';
+import { index as pricesIndex } from '@/actions/App/Http/Controllers/PriceController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -28,7 +30,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/hooks/use-translations';
-import { dashboard, home, login } from '@/routes';
+import { dashboard, home, login, reportPrice } from '@/routes';
 import {
     dashboard as cooperativeDashboard,
     login as cooperativeLogin,
@@ -77,6 +79,16 @@ export function AppSidebar() {
                   title: t('Dashboard'),
                   href: dashboard(),
                   icon: LayoutGrid,
+              },
+              {
+                  title: t('Report a price'),
+                  href: reportPrice(),
+                  icon: CircleDollarSign,
+              },
+              {
+                  title: t('Prices'),
+                  href: pricesIndex(),
+                  icon: ChartNoAxesCombined,
               },
               {
                   title: t('Live list'),

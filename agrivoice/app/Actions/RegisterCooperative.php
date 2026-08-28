@@ -4,11 +4,8 @@ namespace App\Actions;
 
 use App\Enums\CooperativeAdminRole;
 use App\Enums\Crop;
-use App\Enums\PlanTier;
-use App\Enums\SubscriptionStatus;
 use App\Models\Cooperative;
 use App\Models\CooperativeAdmin;
-use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -45,15 +42,6 @@ class RegisterCooperative
                 'cooperative_id' => $cooperative->id,
                 'user_id' => $user->id,
                 'role' => CooperativeAdminRole::Owner,
-            ]);
-
-            Subscription::query()->create([
-                'cooperative_id' => $cooperative->id,
-                'plan_tier' => PlanTier::Starter,
-                'price_per_month' => PlanTier::Starter->monthlyPrice(),
-                'member_limit' => PlanTier::Starter->memberLimit(),
-                'status' => SubscriptionStatus::Active,
-                'current_period_end' => now()->addMonth()->toDateString(),
             ]);
 
             return $user;
